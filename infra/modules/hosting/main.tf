@@ -5,11 +5,40 @@ data "aws_caller_identity" "current" {}
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
+resource "random_id" "log_bucket_suffix" {
+  count       = var.enable_logging ? 1 : 0
+  byte_length = 4
+}
 
 resource "aws_s3_bucket" "spa" {
   bucket = "${terraform.workspace}-${var.stack_id}-spa-${random_id.bucket_suffix.hex}"
   tags          = var.tags
   force_destroy = true
+}
+// Log bucket for CloudFront access logs
+resource "aws_s3_bucket" "log" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = "${terraform.workspace}-${var.stack_id}-spa-logs-${random_id.log_bucket_suffix[0].hex}"
+  tags = var.tags
+}
+# Enable versioning on the log bucket
+resource "aws_s3_bucket_versioning" "log" {
+  count = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.log[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Apply server-side encryption to the log bucket
+resource "aws_s3_bucket_server_side_encryption_configuration" "log" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.log[0].id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
 }
 
 resource "aws_cloudfront_origin_access_control" "spa_oac" {
@@ -51,9 +80,9 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   dynamic "logging_config" {
-    for_each = var.enable_logging && var.log_bucket_arn != "" ? [1] : []
+    for_each = var.enable_logging ? [1] : []
     content {
-      bucket         = var.log_bucket_arn
+      bucket          = aws_s3_bucket.log[0].bucket_regional_domain_name
       include_cookies = false
       prefix          = "${var.stack_id}/"
     }

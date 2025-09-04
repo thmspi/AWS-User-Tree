@@ -19,27 +19,11 @@ variable "admin_password" {
   sensitive   = true
 }
 
-variable "spa_callback_urls" {
-  description = "List of allowed callback URLs for SPA"
-  type        = list(string)
-}
-
-variable "spa_logout_urls" {
-  description = "List of allowed logout URLs for SPA"
-  type        = list(string)
-}
-
 
 variable "enable_logging" {
   description = "Enable CloudFront access logging"
   type        = bool
   default     = false
-}
-
-variable "log_bucket_arn" {
-  description = "S3 ARN for CloudFront logs"
-  type        = string
-  default     = ""
 }
 
 variable "enable_identity_pool" {

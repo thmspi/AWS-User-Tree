@@ -29,7 +29,6 @@ module "hosting" {
   stack_id         = var.stack_id
   tags             = var.tags
   enable_logging   = var.enable_logging
-  log_bucket_arn   = var.log_bucket_arn
 }
 
 // Instantiate Auth module (Cognito User + Identity Pools)

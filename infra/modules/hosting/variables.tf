@@ -15,8 +15,3 @@ variable "enable_logging" {
   default     = false
 }
 
-variable "log_bucket_arn" {
-  description = "ARN of S3 bucket for CloudFront logs (if logging enabled)"
-  type        = string
-  default     = ""
-}
