@@ -47,9 +47,7 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = var.certificate_arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
+    cloudfront_default_certificate = true
   }
 
   dynamic "logging_config" {
@@ -79,14 +77,13 @@ resource "aws_s3_bucket_policy" "spa_policy" {
     }]
   })
 }
-
-// Deploy SPA (index.html) from template
-resource "aws_s3_object" "index" {
+// Upload dashboard page via template
+resource "aws_s3_object" "dashboard" {
   bucket       = aws_s3_bucket.spa.id
-  key          = "index.html"
+  key          = "dashboard.html"
   content      = templatefile(
-    "${path.module}/../../web/index.html.tpl",
-    { login_url = var.login_url }
+    "${path.module}/../../web/dashboard.html.tpl",
+    { logout_url = "https://google.com" }
   )
   content_type = "text/html"
   depends_on   = [aws_s3_bucket.spa]

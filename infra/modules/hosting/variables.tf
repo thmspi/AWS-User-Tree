@@ -8,10 +8,6 @@ variable "tags" {
   type        = map(string)
 }
 
-variable "certificate_arn" {
-  description = "ARN of the ACM certificate to use for CloudFront"
-  type        = string
-}
 
 variable "enable_logging" {
   description = "Enable CloudFront access logs"
@@ -23,9 +19,4 @@ variable "log_bucket_arn" {
   description = "ARN of S3 bucket for CloudFront logs (if logging enabled)"
   type        = string
   default     = ""
-}
-
-variable "login_url" {
-  description = "Cognito login URL to embed in SPA"
-  type        = string
 }
