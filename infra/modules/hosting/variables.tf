@@ -15,3 +15,9 @@ variable "enable_logging" {
   default     = false
 }
 
+variable "log_bucket_allow_acl" {
+  description = "Whether to allow ACLs on the CloudFront log bucket. Set to true only if your account/organization allows ACLs. If false, logging to S3 is disabled to avoid ACL errors."
+  type        = bool
+  default     = true
+}
+

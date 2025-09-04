@@ -21,6 +21,15 @@ resource "aws_s3_bucket" "log" {
   bucket = "${terraform.workspace}-${var.stack_id}-spa-logs-${random_id.log_bucket_suffix[0].hex}"
   tags = var.tags
 }
+// Ensure ownership controls allow ACLs (don't use BucketOwnerEnforced which disables ACLs)
+resource "aws_s3_bucket_ownership_controls" "log_ownership" {
+  count  = var.enable_logging && var.log_bucket_allow_acl ? 1 : 0
+  bucket = aws_s3_bucket.log[0].id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
 # Enable versioning on the log bucket
 resource "aws_s3_bucket_versioning" "log" {
   count = var.enable_logging ? 1 : 0
@@ -42,7 +51,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log" {
 }
 // Grant CloudFront log delivery group WRITE and READ_ACP permissions
 resource "aws_s3_bucket_acl" "log_acl" {
-  count  = var.enable_logging ? 1 : 0
+  count  = var.enable_logging && var.log_bucket_allow_acl ? 1 : 0
   bucket = aws_s3_bucket.log[0].id
   acl    = "log-delivery-write"
 }
@@ -86,7 +95,7 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   dynamic "logging_config" {
-    for_each = var.enable_logging ? [1] : []
+    for_each = var.enable_logging && var.log_bucket_allow_acl ? [1] : []
     content {
       bucket          = aws_s3_bucket.log[0].bucket_regional_domain_name
       include_cookies = false
