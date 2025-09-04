@@ -31,14 +31,9 @@ resource "aws_cognito_user" "admin" {
   attributes = {
     email = var.admin_username
   }
+  password = var.admin_password
 }
 
-resource "aws_cognito_user_password" "admin_pwd" {
-  user_pool_id = aws_cognito_user.this.user_pool_id
-  username     = aws_cognito_user.admin.username
-  password     = var.admin_password
-  permanent    = true
-}
 
 resource "aws_cognito_user_group" "employees" {
   user_pool_id = aws_cognito_user_pool.this.id
@@ -60,15 +55,23 @@ resource "aws_cognito_user_in_group" "admin_manager" {
   group_name   = aws_cognito_user_group.managers.name
 }
 
-# Identity Pool and Roles
+# Hosted UI Domain for Cognito
+resource "aws_cognito_user_pool_domain" "this" {
+  domain       = "${terraform.workspace}-${var.stack_id}"
+  user_pool_id = aws_cognito_user_pool.this.id
+}
+
+// Identity Pool and Roles
+// region for provider names
+data "aws_region" "current" {}
 resource "aws_cognito_identity_pool" "this" {
   count                          = var.enable_identity_pool ? 1 : 0
   identity_pool_name             = "${terraform.workspace}-${var.stack_id}-identity-pool"
   allow_unauthenticated_identities = false
 
   cognito_identity_providers {
-    client_id     = aws_cognito_user_pool_client.spa.id
-    provider_name = aws_cognito_user_pool.this.provider_name
+    client_id               = aws_cognito_user_pool_client.spa.id
+    provider_name           = "cognito-idp.${data.aws_region.current.name}.amazonaws.com/${aws_cognito_user_pool.this.id}"
     server_side_token_check = true
   }
 }
