@@ -22,6 +22,10 @@ terraform {
     }
   }
 }
+// Configure AWS provider with region variable
+provider "aws" {
+  region = var.aws_region
+}
 
 // Instantiate Hosting module (S3 + CloudFront + OAC)
 module "hosting" {
