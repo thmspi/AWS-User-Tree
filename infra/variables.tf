@@ -35,5 +35,5 @@ variable "enable_identity_pool" {
 variable "aws_region" {
   description = "AWS region to deploy resources"
   type        = string
-  default     = "us-west-3"
+  default     = "eu-west-3"
 }

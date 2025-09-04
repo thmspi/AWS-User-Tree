@@ -40,6 +40,33 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log" {
     }
   }
 }
+// Grant CloudFront log delivery group WRITE and READ_ACP permissions
+resource "aws_s3_bucket_acl" "log_acl" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.log[0].id
+
+  access_control_policy {
+    owner {
+      id = aws_s3_bucket.log[0].owner_id
+    }
+
+    grant {
+      permission = "WRITE"
+      grantee {
+        type = "Group"
+        uri  = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+      }
+    }
+
+    grant {
+      permission = "READ_ACP"
+      grantee {
+        type = "Group"
+        uri  = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+      }
+    }
+  }
+}
 
 resource "aws_cloudfront_origin_access_control" "spa_oac" {
   name                               = "${terraform.workspace}-${var.stack_id}-spa-oac"
@@ -87,6 +114,8 @@ resource "aws_cloudfront_distribution" "spa" {
       prefix          = "${var.stack_id}/"
     }
   }
+  # Wait for log bucket ACL to be set before distribution creation
+  depends_on = var.enable_logging ? [aws_s3_bucket_acl.log_acl] : []
 }
 
 resource "aws_s3_bucket_policy" "spa_policy" {
