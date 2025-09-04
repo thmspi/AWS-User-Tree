@@ -139,17 +139,6 @@ resource "aws_s3_bucket_policy" "spa_policy" {
     }]
   })
 }
-// Upload dashboard page via template
-resource "aws_s3_object" "dashboard" {
-  bucket       = aws_s3_bucket.spa.id
-  key          = "dashboard.html"
-  content      = templatefile(
-    "${path.module}/../../web/dashboard.html.tpl",
-    { logout_url = "https://google.com" }
-  )
-  content_type = "text/html"
-  depends_on   = [aws_s3_bucket.spa]
-}
 
 output "spa_bucket_name" {
   value = aws_s3_bucket.spa.bucket

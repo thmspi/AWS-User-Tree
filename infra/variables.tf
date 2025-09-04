@@ -37,3 +37,13 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-3"
 }
+// Callback URLs for Cognito Hosted UI
+variable "spa_callback_urls" {
+  description = "List of allowed callback URLs for the SPA client"
+  type        = list(string)
+}
+// Logout URLs for Cognito Hosted UI
+variable "spa_logout_urls" {
+  description = "List of allowed logout URLs for the SPA client"
+  type        = list(string)
+}

@@ -17,7 +17,7 @@ resource "aws_cognito_user_pool_client" "spa" {
   name                              = "${terraform.workspace}-${var.stack_id}-spa-client"
   user_pool_id                      = aws_cognito_user_pool.this.id
   generate_secret                   = false
-  allowed_oauth_flows               = ["code"]
+  allowed_oauth_flows               = ["implicit"]
   allowed_oauth_scopes              = ["openid", "email", "profile"]
   callback_urls                     = var.spa_callback_urls
   logout_urls                       = var.spa_logout_urls
