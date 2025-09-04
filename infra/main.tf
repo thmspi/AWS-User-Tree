@@ -48,14 +48,22 @@ module "auth" {
 }
 
 locals {
-  login_url = format(
+  // Root and dashboard URLs for redirect
+  index_url    = "https://${module.hosting.cloudfront_domain}/index.html"
+  login_url    = format(
     "https://%s.auth.%s.amazoncognito.com/login?response_type=token&client_id=%s&redirect_uri=%s",
     module.auth.cognito_domain,
     data.aws_region.current.name,
     module.auth.spa_client_id,
     module.hosting.dashboard_url
   )
-    logout_url = module.auth.spa_logout_urls[0]
+  logout_url   = format(
+    "https://%s.auth.%s.amazoncognito.com/logout?client_id=%s&logout_uri=%s",
+    module.auth.cognito_domain,
+    data.aws_region.current.name,
+    module.auth.spa_client_id,
+    local.index_url
+  )
 }
 
 
