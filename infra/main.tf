@@ -1,5 +1,4 @@
 terraform {
-
   backend "remote" {
     organization = "AWS-Users-Tree"
     workspaces {
