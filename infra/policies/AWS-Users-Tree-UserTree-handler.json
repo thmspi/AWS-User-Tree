@@ -1,0 +1,56 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "DynamoDBUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:CreateTable",
+				"dynamodb:DeleteTable",
+				"dynamodb:DescribeTable",
+				"dynamodb:ListTables",
+				"dynamodb:PutItem",
+				"dynamodb:GetItem",
+				"dynamodb:UpdateItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:Scan",
+				"dynamodb:Query"
+			],
+			"Resource": "arn:aws:dynamodb:*:*:table/*-user-tree"
+		},
+		{
+			"Sid": "LambdaUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"lambda:CreateFunction",
+				"lambda:DeleteFunction",
+				"lambda:GetFunction",
+				"lambda:InvokeFunction",
+				"lambda:ListFunctions",
+				"lambda:UpdateFunctionCode",
+				"lambda:UpdateFunctionConfiguration"
+			],
+			"Resource": "arn:aws:lambda:*:*:function/*-user-tree"
+		},
+		{
+			"Sid": "HTTPApiUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"apigatewayv2:CreateApi",
+				"apigatewayv2:DeleteApi",
+				"apigatewayv2:GetApi",
+				"apigatewayv2:UpdateApi",
+				"apigatewayv2:CreateIntegration",
+				"apigatewayv2:DeleteIntegration",
+				"apigatewayv2:UpdateIntegration",
+				"apigatewayv2:CreateRoute",
+				"apigatewayv2:DeleteRoute",
+				"apigatewayv2:UpdateRoute",
+				"apigatewayv2:CreateStage",
+				"apigatewayv2:DeleteStage",
+				"apigatewayv2:UpdateStage"
+			],
+			"Resource": "arn:aws:apigateway:*::/apis/*"
+		}
+	]
+}

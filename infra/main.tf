@@ -46,6 +46,22 @@ module "auth" {
   spa_callback_urls    = ["https://${module.hosting.cloudfront_domain}/dashboard.html"]
   spa_logout_urls      = ["https://${module.hosting.cloudfront_domain}/index.html"]
 }
+// Instantiate Data module (DynamoDB for user tree)
+module "data" {
+  source         = "./modules/data"
+  stack_id       = var.stack_id
+  tags           = var.tags
+  admin_username = var.admin_username
+}
+
+// Instantiate API module (Lambda + API Gateway)
+module "api" {
+  source    = "./modules/api"
+  stack_id  = var.stack_id
+  tags      = var.tags
+  table_name = module.data.user_tree_table_name
+  aws_region = var.aws_region
+}
 
 locals {
   // Root and dashboard URLs for redirect
@@ -64,6 +80,7 @@ locals {
     module.auth.spa_client_id,
     local.index_url
   )
+  api_endpoint = module.api.api_endpoint
 }
 
 
@@ -90,8 +107,9 @@ resource "aws_s3_object" "dashboard" {
   content      = templatefile(
     "${path.module}/web/dashboard.html.tpl",
     {
-      login_url  = local.login_url,
-      logout_url = local.logout_url
+      login_url    = local.login_url,
+      logout_url   = local.logout_url,
+      api_endpoint = local.api_endpoint
     }
   )
   content_type = "text/html"
