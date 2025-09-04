@@ -69,7 +69,10 @@ resource "aws_s3_object" "index" {
   key          = "index.html"
   content      = templatefile(
     "${path.module}/web/index.html.tpl",
-    { login_url = local.login_url }
+    {
+      login_url = local.login_url,
+      client_id = module.auth.spa_client_id
+    }
   )
   content_type = "text/html"
   depends_on   = [module.auth, module.hosting]
