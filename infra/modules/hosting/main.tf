@@ -11,7 +11,7 @@ resource "random_id" "log_bucket_suffix" {
 }
 
 resource "aws_s3_bucket" "spa" {
-  bucket = "${terraform.workspace}-${var.stack_id}-spa-${random_id.bucket_suffix.hex}"
+  bucket        = "${terraform.workspace}-${var.stack_id}-spa-${random_id.bucket_suffix.hex}"
   tags          = var.tags
   force_destroy = true
 }
@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "spa" {
 resource "aws_s3_bucket" "log" {
   count  = var.enable_logging ? 1 : 0
   bucket = "${terraform.workspace}-${var.stack_id}-spa-logs-${random_id.log_bucket_suffix[0].hex}"
-  tags = var.tags
+  tags   = var.tags
 }
 
 resource "aws_s3_bucket_ownership_controls" "spa" {
@@ -46,10 +46,10 @@ resource "aws_s3_bucket_policy" "log_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = { Service = "cloudfront.amazonaws.com" }
-        Action   = "s3:PutObject"
-        Resource = "${aws_s3_bucket.log[0].arn}/*"
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.log[0].arn}/*"
         Condition = {
           StringEquals = {
             "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
@@ -64,7 +64,7 @@ resource "aws_s3_bucket_policy" "log_policy" {
 
 # Enable versioning on the log bucket
 resource "aws_s3_bucket_versioning" "log" {
-  count = var.enable_logging ? 1 : 0
+  count  = var.enable_logging ? 1 : 0
   bucket = aws_s3_bucket.log[0].id
   versioning_configuration {
     status = "Enabled"
@@ -83,11 +83,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log" {
 }
 
 resource "aws_cloudfront_origin_access_control" "spa_oac" {
-  name                               = "${terraform.workspace}-${var.stack_id}-spa-oac"
-  description                        = "Origin Access Control for SPA bucket"
+  name                              = "${terraform.workspace}-${var.stack_id}-spa-oac"
+  description                       = "Origin Access Control for SPA bucket"
   origin_access_control_origin_type = "s3"
-  signing_behavior                   = "always"
-  signing_protocol                   = "sigv4"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 resource "aws_cloudfront_distribution" "spa" {
@@ -102,12 +102,12 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   default_cache_behavior {
-    allowed_methods             = ["GET", "HEAD", "OPTIONS"]
-    cached_methods              = ["GET", "HEAD"]
-    target_origin_id            = "spaS3Origin"
-    viewer_protocol_policy      = "redirect-to-https"
-    cache_policy_id             = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    origin_request_policy_id    = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+    allowed_methods          = ["GET", "HEAD", "OPTIONS"]
+    cached_methods           = ["GET", "HEAD"]
+    target_origin_id         = "spaS3Origin"
+    viewer_protocol_policy   = "redirect-to-https"
+    cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    origin_request_policy_id = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
   }
 
   restrictions {
@@ -125,7 +125,7 @@ resource "aws_cloudfront_distribution" "spa" {
 resource "aws_s3_bucket_policy" "spa_policy" {
   bucket = aws_s3_bucket.spa.id
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
       Principal = { Service = "cloudfront.amazonaws.com" }

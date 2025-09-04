@@ -29,10 +29,10 @@ provider "aws" {
 
 // Instantiate Hosting module (S3 + CloudFront + OAC)
 module "hosting" {
-  source           = "./modules/hosting"
-  stack_id         = var.stack_id
-  tags             = var.tags
-  enable_logging   = var.enable_logging
+  source         = "./modules/hosting"
+  stack_id       = var.stack_id
+  tags           = var.tags
+  enable_logging = var.enable_logging
 }
 
 // Instantiate Auth module (Cognito User + Identity Pools)
@@ -56,24 +56,24 @@ module "data" {
 
 // Instantiate API module (Lambda + API Gateway)
 module "api" {
-  source    = "./modules/api"
-  stack_id  = var.stack_id
-  tags      = var.tags
+  source     = "./modules/api"
+  stack_id   = var.stack_id
+  tags       = var.tags
   table_name = module.data.user_tree_table_name
   aws_region = var.aws_region
 }
 
 locals {
   // Root and dashboard URLs for redirect
-  index_url    = "https://${module.hosting.cloudfront_domain}/index.html"
-  login_url    = format(
+  index_url = "https://${module.hosting.cloudfront_domain}/index.html"
+  login_url = format(
     "https://%s.auth.%s.amazoncognito.com/login?response_type=token&client_id=%s&redirect_uri=%s&scope=openid+email+profile",
     module.auth.cognito_domain,
     data.aws_region.current.name,
     module.auth.spa_client_id,
     module.hosting.dashboard_url
   )
-  logout_url   = format(
+  logout_url = format(
     "https://%s.auth.%s.amazoncognito.com/logout?client_id=%s&logout_uri=%s",
     module.auth.cognito_domain,
     data.aws_region.current.name,
@@ -90,9 +90,9 @@ data "aws_region" "current" {}
 
 // Deploy SPA index.html with dynamic login_url
 resource "aws_s3_object" "index" {
-  bucket       = module.hosting.bucket_name
-  key          = "index.html"
-  content      = templatefile(
+  bucket = module.hosting.bucket_name
+  key    = "index.html"
+  content = templatefile(
     "${path.module}/web/index.html.tpl",
     { login_url = local.login_url }
   )
@@ -102,9 +102,9 @@ resource "aws_s3_object" "index" {
 
 // Upload dashboard page with authentication guard
 resource "aws_s3_object" "dashboard" {
-  bucket       = module.hosting.bucket_name
-  key          = "dashboard.html"
-  content      = templatefile(
+  bucket = module.hosting.bucket_name
+  key    = "dashboard.html"
+  content = templatefile(
     "${path.module}/web/dashboard.html.tpl",
     {
       login_url    = local.login_url,
