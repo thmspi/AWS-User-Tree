@@ -8,10 +8,6 @@ resource "aws_dynamodb_table" "user_tree" {
 		name = "username"
 		type = "S"
 	}
-	attribute {
-		name = "manager"
-		type = "S"
-	}
 
 	tags = var.tags
 }
