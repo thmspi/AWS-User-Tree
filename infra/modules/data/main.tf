@@ -16,13 +16,8 @@ resource "aws_dynamodb_table" "user_tree" {
 resource "aws_dynamodb_table_item" "admin" {
   table_name = aws_dynamodb_table.user_tree.name
   hash_key   = "username"
-  item = jsonencode({
-    username    = var.admin_username
-    level       = 0
-    groups      = { SS = ["employees"] }
-    projects    = { SS = [] }
-    permissions = { SS = [] }
-    manager     = ""
-  })
+    item = jsonencode({
+      username = var.admin_username
+    })
   depends_on = [aws_dynamodb_table.user_tree]
 }
