@@ -120,14 +120,6 @@ resource "aws_cloudfront_distribution" "spa" {
     cloudfront_default_certificate = true
   }
 
-  dynamic "logging_config" {
-    for_each = var.enable_logging ? [1] : []
-    content {
-      bucket          = aws_s3_bucket.log[0].bucket_regional_domain_name
-      include_cookies = false
-      prefix          = "${var.stack_id}/"
-    }
-  }
 }
 
 resource "aws_s3_bucket_policy" "spa_policy" {
