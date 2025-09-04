@@ -1,10 +1,6 @@
 // Root outputs
 output "cloudfront_domain" {
-  value = module.hosting.cloudfront_domain
-}
-
-output "spa_bucket_name" {
-  value = module.hosting.bucket_name
+  value = "https://${module.hosting.cloudfront_domain}"
 }
 
 output "user_pool_id" {
