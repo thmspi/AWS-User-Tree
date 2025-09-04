@@ -47,21 +47,20 @@ module "auth" {
   spa_logout_urls      = ["https://google.com"]
 }
 
+locals {
+  login_url = format(
+    "https://%s.auth.%s.amazoncognito.com/login?response_type=code&client_id=%s&redirect_uri=%s",
+    module.auth.cognito_domain,
+    data.aws_region.current.name,
+    module.auth.spa_client_id,
+    module.hosting.dashboard_url
+  )
+}
 
 
 // Fetch current AWS region for hosted UI URL
 data "aws_region" "current" {}
 
-// Construct Cognito Hosted UI login URL
-locals {
-  login_url = format(
-    "https://%s.auth.%s.amazoncognito.com/login?response_type=code&client_id=%s&redirect_uri=https://%s",
-    module.auth.cognito_domain,
-    data.aws_region.current.name,
-    module.auth.spa_client_id,
-    module.hosting.cloudfront_domain
-  )
-}
 
 // Deploy SPA index.html with dynamic login_url
 resource "aws_s3_object" "index" {

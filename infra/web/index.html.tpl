@@ -11,7 +11,9 @@
   <p>If you see this page, the S3 + CloudFront deployment succeeded.</p>
   <div id="app"></div>
   <script>
-    document.getElementById('app').innerHTML = '<button onclick="window.location.href=\'${login_url}&client_id=${client_id}\'">Login with Cognito</button>';
+    document.getElementById('app').innerHTML =
+    '<button onclick="window.location.href=\'${login_url}\'">Login with Cognito</button>';
   </script>
+
 </body>
 </html>
