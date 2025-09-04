@@ -16,22 +16,52 @@ resource "aws_s3_bucket" "spa" {
   force_destroy = true
 }
 
-resource "aws_s3_bucket_acl" "spa_acl" {
-  bucket = aws_s3_bucket.spa.id
-  acl    = "private"
-}
-
 // Log bucket for CloudFront access logs
 resource "aws_s3_bucket" "log" {
   count  = var.enable_logging ? 1 : 0
   bucket = "${terraform.workspace}-${var.stack_id}-spa-logs-${random_id.log_bucket_suffix[0].hex}"
   tags = var.tags
 }
-resource "aws_s3_bucket_acl" "log_acl" {
+
+resource "aws_s3_bucket_ownership_controls" "spa" {
+  bucket = aws_s3_bucket.spa.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "log" {
   count  = var.enable_logging ? 1 : 0
   bucket = aws_s3_bucket.log[0].id
-  acl    = "log-delivery-write"
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
 }
+
+resource "aws_s3_bucket_policy" "log_policy" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.log[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action   = "s3:PutObject"
+        Resource = "${aws_s3_bucket.log[0].arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      }
+    ]
+  })
+}
+
+
+
 # Enable versioning on the log bucket
 resource "aws_s3_bucket_versioning" "log" {
   count = var.enable_logging ? 1 : 0

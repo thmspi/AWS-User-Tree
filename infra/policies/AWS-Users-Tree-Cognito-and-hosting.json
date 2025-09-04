@@ -105,7 +105,8 @@
 				"cognito-idp:AdminCreateUser",
 				"cognito-idp:AdminSetUserPassword",
 				"cognito-idp:AdminGetUser",
-				"cognito-idp:AdminDeleteUser"
+				"cognito-idp:AdminDeleteUser",
+				"cognito-idp:AdminAddUserToGroup"
 			],
 			"Resource": [
 				"arn:aws:cognito-idp:*:*:userpool/*-user-pool/client/*-spa-client",
