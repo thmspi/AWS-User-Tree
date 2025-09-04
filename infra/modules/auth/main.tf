@@ -23,15 +23,22 @@ resource "aws_cognito_user_pool_client" "spa" {
   logout_urls                       = var.spa_logout_urls
   supported_identity_providers      = ["COGNITO"]
   allowed_oauth_flows_user_pool_client = true
+  explicit_auth_flows                  = [
+    "ALLOW_USER_SRP_AUTH",
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH"
+  ]
 }
 
 resource "aws_cognito_user" "admin" {
   user_pool_id = aws_cognito_user_pool.this.id
-  username     = "${terraform.workspace}-${var.admin_username}"
+  username     = var.admin_username
   attributes = {
     email = var.admin_username
   }
-  password = var.admin_password
+  password             = var.admin_password
+  message_action       = "SUPPRESS"
+  force_alias_creation = true
 }
 
 

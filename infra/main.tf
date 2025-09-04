@@ -51,7 +51,7 @@ locals {
   // Root and dashboard URLs for redirect
   index_url    = "https://${module.hosting.cloudfront_domain}/index.html"
   login_url    = format(
-    "https://%s.auth.%s.amazoncognito.com/login?response_type=token&client_id=%s&redirect_uri=%s",
+    "https://%s.auth.%s.amazoncognito.com/login?response_type=token&client_id=%s&redirect_uri=%s&scope=openid+email+profile",
     module.auth.cognito_domain,
     data.aws_region.current.name,
     module.auth.spa_client_id,
