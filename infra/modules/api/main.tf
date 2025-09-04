@@ -40,7 +40,7 @@ resource "aws_iam_role_policy" "lambda_dynamo" {
 // Package and deploy user tree Lambda function assets
 resource "archive_file" "user_tree_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/user_tree"
+  source_dir  = "${path.module}/lambdas/user_tree"
   output_path = "${path.module}/user_tree.zip"
 }
 
