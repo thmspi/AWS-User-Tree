@@ -14,9 +14,9 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 60px;  /* slide down below the header bar */
+      top: 60px; /* slide down below the header bar */
       right: 0;
-      width: 20px;  /* closed peek width equals toggle width */
+      width: 0;  /* fully closed by default */
       height: calc(100vh - 60px); /* full height minus header */
       overflow: visible;
       pointer-events: auto;
@@ -33,19 +33,22 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      left: 0;  /* align at panel left edge */
+      left: -20px; /* outside panel when closed */
       z-index: 2147483648;
       pointer-events: auto;
       width: 20px;
       height: 40px;
       background: #eee;
-      color: white;
-      border: 1px solid white;
+      color: #333;
+      border: 1px solid #ccc;
       text-align: center;
       line-height: 40px;
-      transition: transform 0.3s ease;
+      opacity: 0;
+      transition: left 0.3s ease, opacity 0.3s ease;
     }
     #slide-menu.open #menu-toggle {
+      left: 0; /* move inside panel on open */
+      opacity: 1;
       transform: translateY(-50%) rotate(180deg);
     }
     #menu-options {
