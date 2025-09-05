@@ -17,11 +17,11 @@
 <body>
   <header>
     <div>Dashboard</div>
-  <div><a href="@@logout_url@@" style="color:#fff; text-decoration:none;">Logout</a></div>
+  <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
   </header>
   <div id="tree-container"></div>
   <script>
-  const apiEndpoint = "@@api_endpoint@@";
+  const apiEndpoint = "${api_endpoint}";
     const container = document.getElementById("tree-container");
     // calculate dimensions after layout
     const { width, height } = container.getBoundingClientRect();

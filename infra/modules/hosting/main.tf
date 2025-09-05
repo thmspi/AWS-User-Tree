@@ -144,7 +144,13 @@ resource "aws_s3_bucket_policy" "spa_policy" {
 resource "aws_s3_object" "dashboard_html" {
   bucket        = aws_s3_bucket.spa.bucket
   key           = "dashboard.html"
-  source        = "${path.module}/../../web/dashboard.html.tpl"
+  content       = templatefile(
+                    "${path.module}/../../web/dashboard.html.tpl",
+                    {
+                      api_endpoint = var.dashboard_api_endpoint,
+                      logout_url   = var.dashboard_logout_url
+                    }
+                  )
   content_type  = "text/html"
   cache_control = "max-age=31536000"
 }

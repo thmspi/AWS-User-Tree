@@ -28,10 +28,12 @@ provider "aws" {
 
 // Instantiate Hosting module (S3 + CloudFront + OAC)
 module "hosting" {
-  source         = "./modules/hosting"
-  stack_id       = var.stack_id
-  tags           = var.tags
-  enable_logging = var.enable_logging
+  source                 = "./modules/hosting"
+  stack_id               = var.stack_id
+  tags                   = var.tags
+  enable_logging         = var.enable_logging
+  dashboard_api_endpoint = local.api_endpoint
+  dashboard_logout_url   = local.logout_url
 }
 
 // Instantiate Auth module (Cognito User + Identity Pools)
