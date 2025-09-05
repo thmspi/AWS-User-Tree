@@ -47,6 +47,8 @@ resource "archive_file" "user_tree_zip" {
 // Lambda function for user tree
 resource "aws_lambda_function" "user_tree" {
   filename      = archive_file.user_tree_zip.output_path
+  # Force update when ZIP content changes
+  source_code_hash = filebase64sha256(archive_file.user_tree_zip.output_path)
   function_name = "${terraform.workspace}-${var.stack_id}-user-tree"
   handler       = "index.handler"
   runtime       = "nodejs22.x"
