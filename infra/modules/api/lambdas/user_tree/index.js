@@ -1,5 +1,6 @@
-const AWS = require('aws-sdk');
-const docClient = new AWS.DynamoDB.DocumentClient();
+// Use AWS SDK v3 in Node.js 22.x runtime
+const { DynamoDBClient, ScanCommand } = require('@aws-sdk/client-dynamodb');
+const client = new DynamoDBClient({});
 
 exports.handler = async (event) => {
   console.log('Lambda handler invoked with event:', JSON.stringify(event));
@@ -12,7 +13,7 @@ exports.handler = async (event) => {
     let params = { TableName: tableName };
     do {
       console.log('Scanning DynamoDB with params:', JSON.stringify(params));
-      const data = await docClient.scan(params).promise();
+      const data = await client.send(new ScanCommand(params));
       console.log('Fetched batch items count:', data.Items.length);
       items = items.concat(data.Items);
       params.ExclusiveStartKey = data.LastEvaluatedKey;
