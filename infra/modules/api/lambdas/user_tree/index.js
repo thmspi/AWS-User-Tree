@@ -56,7 +56,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify(hierarchy)
     };
-    console.log('Returning response:', response);
+    console.log('Returning response :', response);
     return response;
   } catch (err) {
     console.error('Error in Lambda handler:', err);
