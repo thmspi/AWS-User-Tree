@@ -61,15 +61,36 @@
           .attr('class', 'node')
           .attr('transform', d => `translate($${d.y},$${d.x})`);
 
-        node.append('circle')
-          .attr('r', 6)
-          .attr('fill', d => d.children ? '#555' : '#999');
+        // draw card background
+        node.append('rect')
+          .attr('x', -75)
+          .attr('y', -30)
+          .attr('width', 150)
+          .attr('height', 60)
+          .attr('fill', d => d.children && d.children.length ? 'purple' : 'pink')
+          .attr('rx', 5)
+          .attr('ry', 5);
 
+        // username
         node.append('text')
-          .attr('dy', 3)
-          .attr('x', d => d.children ? -10 : 10)
-          .style('text-anchor', d => d.children ? 'end' : 'start')
+          .attr('dy', -10)
+          .style('text-anchor', 'middle')
+          .style('fill', '#fff')
           .text(d => d.data.username);
+        // groups
+        node.append('text')
+          .attr('dy', 5)
+          .style('text-anchor', 'middle')
+          .style('font-size', '10px')
+          .style('fill', '#fff')
+          .text(d => 'Groups: ' + (d.data.groups || []).join(', '));
+        // projects
+        node.append('text')
+          .attr('dy', 20)
+          .style('text-anchor', 'middle')
+          .style('font-size', '10px')
+          .style('fill', '#fff')
+          .text(d => 'Projects: ' + (d.data.projects || []).join(', '));
       } catch (e) {
         console.error('Error loading tree:', e);
       }
