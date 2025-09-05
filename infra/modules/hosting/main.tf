@@ -140,6 +140,26 @@ resource "aws_s3_bucket_policy" "spa_policy" {
   })
 }
 
+# Upload and deploy dashboard HTML with auto-invalidation
+resource "aws_s3_object" "dashboard_html" {
+  bucket        = aws_s3_bucket.spa.bucket
+  key           = "dashboard.html"
+  source        = "${path.module}/../../web/dashboard.html.tpl"
+  content_type  = "text/html"
+  cache_control = "max-age=31536000"
+}
+
+resource "aws_cloudfront_invalidation" "dashboard_html" {
+  distribution_id = aws_cloudfront_distribution.spa.id
+  paths           = ["/dashboard.html"]
+
+  # ensure invalidation runs when HTML changes
+  depends_on = [aws_s3_object.dashboard_html]
+  triggers = {
+    etag = aws_s3_object.dashboard_html.etag
+  }
+}
+
 output "spa_bucket_name" {
   value = aws_s3_bucket.spa.bucket
 }
