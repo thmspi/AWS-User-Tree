@@ -28,59 +28,31 @@
   </div>
   <div id="tree-container"></div>
   <script>
-    // D3.js based interactive tree graph
     const apiEndpoint = "${api_endpoint}";
     const container = document.getElementById('tree-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Create SVG and group for zooming/panning
-    const svg = d3.select('#tree-container').append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .call(d3.zoom().scaleExtent([0.1, 3]).on('zoom', (event) => {
-        g.attr('transform', event.transform);
-      }));
-    const g = svg.append('g');
+    // Recursive render of tree as nested UL
+    function renderNode(node) {
+      const li = document.createElement('li');
+      li.textContent = node.username;
+      if (node.children && node.children.length) {
+        const ul = document.createElement('ul'); ul.className = 'tree';
+        node.children.forEach(child => ul.appendChild(renderNode(child)));
+        li.appendChild(ul);
+      }
+      return li;
+    }
 
     async function loadTree() {
       try {
-        const res = await fetch(`${apiEndpoint}/tree`);
+        const res = await fetch(apiEndpoint + '/tree');
         const data = await res.json();
-        const root = d3.hierarchy(data);
-        const treeLayout = d3.tree().size([height, width - 160]);
-        treeLayout(root);
-
-        // Render links
-        g.selectAll('path.link')
-         .data(root.links())
-         .enter()
-         .append('path')
-         .attr('class', 'link')
-         .attr('fill', 'none')
-         .attr('stroke', '#555')
-         .attr('d', d3.linkHorizontal()
-           .x(d => d.y)
-           .y(d => d.x)
-         );
-
-        // Render nodes
-        const node = g.selectAll('g.node')
-          .data(root.descendants())
-          .enter()
-          .append('g')
-          .attr('class', 'node')
-          .attr('transform', d => `translate(${d.y},${d.x})`);
-
-        node.append('circle')
-          .attr('r', 6)
-          .attr('fill', d => d.children ? '#555' : '#999');
-
-        node.append('text')
-          .attr('dy', 3)
-          .attr('x', d => d.children ? -10 : 10)
-          .style('text-anchor', d => d.children ? 'end' : 'start')
-          .text(d => d.data.username);
+        const container = document.getElementById('tree-container');
+        const rootUl = document.createElement('ul'); rootUl.className = 'tree';
+        rootUl.appendChild(renderNode(data));
+        container.appendChild(rootUl);
       } catch (e) {
         console.error('Failed to load tree:', e);
       }
