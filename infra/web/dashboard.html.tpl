@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - AWS User Tree SPA</title>
   <style>
-    body { margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; height:100vh; }
+    body { background-color: black;margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; height:100vh; }
     header { padding:1em; background:#0073bb; color:#fff; display:flex; justify-content:space-between; align-items:center; }
     #controls { position:absolute; top:1em; right:1em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
@@ -30,10 +30,11 @@
       transition: width 0.3s ease;
     }
     #menu-toggle {
-      position: absolute;
-      top: 50%;
+      /* Make toggle fixed to viewport edge */
+      position: fixed;
+      top: calc(60px + 50vh - 20px); /* below header, centered */
+      right: 0;
       transform: translateY(-50%);
-      left: -20px; /* outside panel when closed */
       z-index: 2147483648;
       pointer-events: auto;
       width: 20px;
@@ -43,11 +44,12 @@
       border: 1px solid #ccc;
       text-align: center;
       line-height: 40px;
-      opacity: 0;
-      transition: left 0.3s ease, opacity 0.3s ease;
+      opacity: 1;  /* ensure the toggle is always visible */
+      transition: right 0.3s ease, opacity 0.3s ease;
     }
     #slide-menu.open #menu-toggle {
-      left: 0; /* move inside panel on open */
+      /* move toggle right by menu width when open */
+      right: 200px;
       opacity: 1;
       transform: translateY(-50%) rotate(180deg);
     }
@@ -67,12 +69,12 @@
 </head>
 <body>
   <header>
-    <div>Dashboard</div>
+    <div>Dashboard v0.1</div>
   <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
   </header>
   <div id="tree-container"></div>
   <!-- sliding manager menu -->
-  <div id="slide-menu" style="display:none;">
+  <div id="slide-menu">
     <button id="menu-toggle">&#x25C0;</button>
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
