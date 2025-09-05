@@ -110,6 +110,13 @@ resource "aws_cloudfront_distribution" "spa" {
     min_ttl     = var.stack_id == "dev" ? 0 : 0
     default_ttl = var.stack_id == "dev" ? 0 : 86400
     max_ttl     = var.stack_id == "dev" ? 0 : 31536000
+    # required when not using cache_policy_id
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {
