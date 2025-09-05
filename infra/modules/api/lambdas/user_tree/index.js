@@ -49,8 +49,8 @@ exports.handler = async (event) => {
         family_name: node.family_name || null,
         username: node.username,
         level: node.level,
-        groups: node.groups || [],
-        projects: node.projects || [],
+  team: node.team || [],
+  job: node.job || [],
         manager: node.manager || null,
         permissions: node.permissions,
         // include manager status flag for UI coloring

@@ -74,6 +74,19 @@
       font-size: 14px;
       cursor: pointer;
     }
+    /* Modal overlay for create-user form */
+    #modal-overlay {
+      position: fixed; top:0; left:0; width:100vw; height:100vh;
+      background: rgba(0,0,0,0.5); display:none;
+      justify-content: center; align-items: center; z-index: 10000;
+    }
+    #modal {
+      background: #fff; padding:20px; border-radius:8px;
+      max-width: 400px; width:90%; box-shadow:0 2px 10px rgba(0,0,0,0.3);
+    }
+    #modal h2 { margin-top:0; }
+    #create-user-form input, #create-user-form select { width:100%; margin-bottom:10px; padding:8px; }
+    #create-user-form button { margin-right:10px; padding:8px 16px; }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -89,6 +102,29 @@
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
       <button id="create-group">Create a group</button>
+    </div>
+  </div>
+  <!-- create-user modal -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <h2>Create New User</h2>
+      <form id="create-user-form">
+        <input type="text" name="given_name" placeholder="First Name" required />
+        <input type="text" name="family_name" placeholder="Last Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <select id="manager-select" name="manager"><option value="">-- Select Manager --</option></select>
+        <select id="permissions-select" name="permissions" multiple>
+          <option>AmazonEC2FullAccess</option>
+          <option>AmazonVPCFullAccess</option>
+          <option>AmazonS3FullAccess</option>
+          <option>AmazonRDSFullAccess</option>
+        </select>
+        <label><input type="checkbox" id="is-manager-checkbox" name="is_manager"/> Manager?</label>
+        <div style="text-align:right; margin-top:10px;">
+          <button type="button" id="cancel-create">Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
     </div>
   </div>
   <script>
@@ -185,13 +221,13 @@
           .style('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', '#fff')
-          .text(d => 'Groups: ' + (d.data.groups||[]).join(', '));
+          .text(d => 'Team: ' + (d.data.team||[]).join(', '));
         node.append('text')
           .attr('dy', -cardHeight/2 + padding + 50)
           .style('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', '#fff')
-          .text(d => 'Projects: ' + (d.data.projects||[]).join(', '));
+          .text(d => 'Job: ' + (d.data.job||[]).join(', '));
         node.append('text')
           .attr('dy', 30)
           .style('text-anchor', 'middle')
@@ -203,6 +239,37 @@
       }
     }
     loadTree();
+    // setup create-user modal handlers
+    const overlay = document.getElementById('modal-overlay');
+    document.getElementById('create-user').onclick = async () => {
+      // populate managers dropdown
+      const mgrSelect = document.getElementById('manager-select'); mgrSelect.innerHTML = '<option value="">-- Select Manager --</option>';
+      const resp = await fetch(apiEndpoint + '/tree');
+      const tree = await resp.json();
+      const all = d3.hierarchy(tree).descendants();
+      all.filter(d => d.data.is_manager).forEach(d => {
+        const opt = document.createElement('option'); opt.value = d.data.username; opt.textContent = d.data.given_name+' '+d.data.family_name;
+        mgrSelect.appendChild(opt);
+      });
+      overlay.style.display = 'flex';
+    };
+    document.getElementById('cancel-create').onclick = () => overlay.style.display = 'none';
+    document.getElementById('create-user-form').onsubmit = async e => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        given_name: form.given_name.value,
+        family_name: form.family_name.value,
+        email: form.email.value,
+        manager: form.manager.value || null,
+        permissions: Array.from(form['permissions']).filter(o=>o.selected).map(o=>o.value),
+        is_manager: form.is_manager.checked
+      };
+      const res = await fetch(apiEndpoint + '/users', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      const result = await res.json();
+      alert('Created '+result.email+' with password: '+result.password);
+      overlay.style.display = 'none';
+    };
   </script>
 </body>
 </html>

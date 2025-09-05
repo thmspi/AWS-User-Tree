@@ -22,8 +22,8 @@ resource "aws_dynamodb_table_item" "admin" {
     given_name   = { S    = var.admin_given_name }
     family_name  = { S    = var.admin_family_name }
     level        = { N    = "0" }
-    groups       = { L    = [] }
-    projects     = { L    = [] }
+  team         = { L    = [] }
+  job          = { L    = [] }
   permissions  = { L    = [] }
   // mark this user explicitly as a manager
   is_manager   = { BOOL = true }
