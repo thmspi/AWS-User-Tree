@@ -31,10 +31,10 @@
     #menu-toggle {
       position: absolute;
       top: 50%;
-      left: -20px;
+      left: -25px;
       transform: translateY(-50%) rotate(0deg);
       transition: transform 0.3s ease;
-      background: #0073bb;
+      background: red;
       color: #fff;
       border: none;
       width: 20px;
@@ -80,8 +80,8 @@
 
     // Create SVG canvas with correct dimensions
     const svg = d3.select("#tree-container").append("svg")
-      .attr("width", "100%")
-      .attr("height", "100%");
+      .attr("width", "90%")
+      .attr("height", "90%");
     // main group for pan/zoom
     const g = svg.append('g');
     // setup zoom behavior referencing g
