@@ -21,6 +21,10 @@ resource "aws_cognito_user_pool" "this" {
     attribute_data_type = "String"
     required            = false
   }
+  # Prevent schema modifications from updating in-place
+  lifecycle {
+    ignore_changes = [schema]
+  }
 }
 
 resource "aws_cognito_user_pool_client" "spa" {
