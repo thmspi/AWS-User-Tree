@@ -14,16 +14,16 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
+      top: 0;
       right: 0;
-      width: 0;
-      overflow: hidden;
-      transition: width 0.3s ease;
-      background: #f0f0f0;
-      border-left: 1px solid #ccc;
-      height: 200px;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+      width: 20px;  /* closed peek width equals toggle width */
+      height: 100vh; /* full viewport for easy hit test */
+      overflow: visible;
+      pointer-events: auto;
+      z-index: 2147483647; /* topmost */
+      background: magenta; /* debug background */
+      border-left: 2px solid blue; /* debug border */
+      /* remove translateY for full-height panel */
     }
     #slide-menu.open {
       width: 200px;
@@ -31,15 +31,17 @@
     #menu-toggle {
       position: absolute;
       top: 50%;
-      left: -25px;
-      transform: translateY(-50%) rotate(0deg);
-      transition: transform 0.3s ease;
-      background: red;
-      color: #fff;
-      border: none;
+      transform: translateY(-50%);
+      left: 0;  /* align at panel left edge */
+      z-index: 2147483648;
+      pointer-events: auto;
       width: 20px;
       height: 40px;
-      cursor: pointer;
+      background: red;
+      color: white;
+      border: 1px solid white;
+      text-align: center;
+      line-height: 40px;
     }
     #slide-menu.open #menu-toggle {
       transform: translateY(-50%) rotate(180deg);
