@@ -10,7 +10,17 @@
     header { padding:1em; background:#0073bb; color:#fff; display:flex; justify-content:space-between; align-items:center; }
     #controls { position:absolute; top:1em; right:1em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
-    #tree-container { flex:1; overflow:auto; padding:1em; transform-origin:0 0; background: #fff; }
+    #tree-container {
+      flex:1;
+      overflow:auto;
+      padding:1em;
+      margin:1em;
+      background: #fff;
+      border-radius: 10px;
+      transform-origin:0 0;
+      max-width: calc(100% - 2em);
+      max-height: calc(100% - 2em - 60px); /* account for header and margin */
+    }
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
@@ -120,6 +130,11 @@
         treeLayout(root);
         // clear any existing nodes and links
         g.selectAll("*").remove();
+        // center the tree: translate g to center horizontally and add top padding
+        const xOffset = (width - 160) / 2;
+        const yOffset = 20;
+        g.attr("transform", `translate(${xOffset},${yOffset})`);
+
         console.log("Rendering nodes:", root.descendants().length);
 
         // links
