@@ -148,15 +148,17 @@ resource "aws_s3_object" "dashboard_html" {
   content_type  = "text/html"
   cache_control = "max-age=31536000"
 }
-
-resource "aws_cloudfront_invalidation" "dashboard_html" {
-  distribution_id = aws_cloudfront_distribution.spa.id
-  paths           = ["/dashboard.html"]
-
-  # ensure invalidation runs when HTML changes
-  depends_on = [aws_s3_object.dashboard_html]
+// automatically invalidate CloudFront cache for dashboard.html using AWS CLI
+resource "null_resource" "dashboard_invalidation" {
+  # trigger when HTML object changes
   triggers = {
     etag = aws_s3_object.dashboard_html.etag
+  }
+  depends_on = [aws_s3_object.dashboard_html]
+
+  provisioner "local-exec" {
+    command     = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.spa.id} --paths /dashboard.html"
+    interpreter = ["bash", "-c"]
   }
 }
 
