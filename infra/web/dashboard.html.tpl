@@ -61,33 +61,43 @@
           .attr("class", "node")
           .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
-        // draw card background (taller to fit manager line)
+        // draw card background
+        const cardWidth = 200;
+        const cardHeight = 80;
+        const padding = 10;
         node.append("rect")
-          .attr("x", -60)
-          .attr("y", -30)
-          .attr("width", 120)
-          .attr("height", 60)
-          .attr("fill", "#0073bb")
-          .attr("rx", 10)
-          .attr("ry", 10);
+          .attr("x", -cardWidth/2)
+          .attr("y", -cardHeight/2)
+          .attr("width", cardWidth)
+          .attr("height", cardHeight)
+          .attr("fill", d => d.children && d.children.length ? "red" : "blue")
+          .attr("rx", 5)
+          .attr("ry", 5);
 
         // display full name
         node.append("text")
-          .attr("dy", -18)
+          .attr("dy", -cardHeight/2 + padding + 0)
+          .style("text-anchor", "middle")
+          .style("font-size", "14px")
+          .style("fill", "#fff")
+          .text(d => `${d.data.given_name || ''} ${d.data.family_name || ''}`.trim());
+        // display username
+        node.append("text")
+          .attr("dy", -cardHeight/2 + padding + 18)
           .style("text-anchor", "middle")
           .style("font-size", "12px")
           .style("fill", "#fff")
-          .text(d => ( (d.data.given_name || "") + " " + (d.data.family_name || "") ).trim());
-        // groups
+          .text(d => d.data.username);
+        // display groups
         node.append("text")
-          .attr("dy", 0)
+          .attr("dy", -cardHeight/2 + padding + 34)
           .style("text-anchor", "middle")
           .style("font-size", "12px")
           .style("fill", "#fff")
           .text(d => "Groups: " + (d.data.groups || []).join(", "));
-        // projects
+        // display projects
         node.append("text")
-          .attr("dy", 15)
+          .attr("dy", -cardHeight/2 + padding + 50)
           .style("text-anchor", "middle")
           .style("font-size", "12px")
           .style("fill", "#fff")

@@ -45,11 +45,12 @@ exports.handler = async (event) => {
       const node = tree[username];
       if (!node) return null;
       return {
-        username,
+        given_name: node.given_name || null,
+        family_name: node.family_name || null,
+        username: node.username,
         level: node.level,
         groups: node.groups || [],
         projects: node.projects || [],
-        // manager field contains the username of the parent node
         manager: node.manager || null,
         permissions: node.permissions,
         children: node.children.map(buildNode)
