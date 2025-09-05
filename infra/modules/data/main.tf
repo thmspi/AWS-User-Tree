@@ -18,12 +18,14 @@ resource "aws_dynamodb_table_item" "admin" {
   hash_key   = "username"
   # Seed the root admin user with full attribute set
   item = jsonencode({
-    username    = { S = var.admin_username }
-    level       = { N = "0" }
-    groups      = { L = [] }
-    projects    = { L = [] }
-    permissions = { L = [] }
-    manager     = { NULL = true }
+    username     = { S    = var.admin_username }
+    given_name   = { S    = var.admin_given_name }
+    family_name  = { S    = var.admin_family_name }
+    level        = { N    = "0" }
+    groups       = { L    = [] }
+    projects     = { L    = [] }
+    permissions  = { L    = [] }
+    manager      = { NULL = true }
   })
   depends_on = [aws_dynamodb_table.user_tree]
 }

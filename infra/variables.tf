@@ -19,6 +19,17 @@ variable "admin_password" {
   sensitive   = true
 }
 
+// Admin user's first name (given name)
+variable "admin_given_name" {
+  description = "First name for the root admin user"
+  type        = string
+}
+
+// Admin user's last name (family name)
+variable "admin_family_name" {
+  description = "Last name for the root admin user"
+  type        = string
+}
 
 variable "enable_logging" {
   description = "Enable CloudFront access logging"
@@ -31,6 +42,7 @@ variable "enable_identity_pool" {
   type        = bool
   default     = true
 }
+
 // AWS region to deploy resources into
 variable "aws_region" {
   description = "AWS region to deploy resources"

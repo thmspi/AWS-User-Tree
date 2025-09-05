@@ -11,6 +11,16 @@ resource "aws_cognito_user_pool" "this" {
     attribute_data_type = "String"
     required            = true
   }
+  schema {
+    name                = "given_name"
+    attribute_data_type = "String"
+    required            = false
+  }
+  schema {
+    name                = "family_name"
+    attribute_data_type = "String"
+    required            = false
+  }
 }
 
 resource "aws_cognito_user_pool_client" "spa" {
@@ -34,7 +44,9 @@ resource "aws_cognito_user" "admin" {
   user_pool_id = aws_cognito_user_pool.this.id
   username     = var.admin_username
   attributes = {
-    email = var.admin_username
+    email       = var.admin_username
+    given_name  = var.admin_given_name
+    family_name = var.admin_family_name
   }
   password             = var.admin_password
   message_action       = "SUPPRESS"

@@ -44,13 +44,17 @@ module "auth" {
   enable_identity_pool = var.enable_identity_pool
   spa_callback_urls    = ["https://${module.hosting.cloudfront_domain}/dashboard.html"]
   spa_logout_urls      = ["https://${module.hosting.cloudfront_domain}/index.html"]
+  admin_given_name     = var.admin_given_name
+  admin_family_name    = var.admin_family_name
 }
 // Instantiate Data module (DynamoDB for user tree)
 module "data" {
   source         = "./modules/data"
   stack_id       = var.stack_id
   tags           = var.tags
-  admin_username = var.admin_username
+  admin_username     = var.admin_username
+  admin_given_name   = var.admin_given_name
+  admin_family_name  = var.admin_family_name
 }
 
 // Instantiate API module (Lambda + API Gateway)

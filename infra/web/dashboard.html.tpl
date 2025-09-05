@@ -17,89 +17,90 @@
 <body>
   <header>
     <div>Dashboard</div>
-    <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
+  <div><a href="@@logout_url@@" style="color:#fff; text-decoration:none;">Logout</a></div>
   </header>
   <div id="tree-container"></div>
   <script>
-    const apiEndpoint = "${api_endpoint}";
-    const container = document.getElementById('tree-container');
+  const apiEndpoint = "@@api_endpoint@@";
+    const container = document.getElementById("tree-container");
     const width = container.clientWidth;
     const height = container.clientHeight;
 
     // Create SVG canvas
-    const svg = d3.select('#tree-container').append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .call(d3.zoom().scaleExtent([0.5, 2]).on('zoom', (event) => {
-        g.attr('transform', event.transform);
+    const svg = d3.select("#tree-container").append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .call(d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
+        g.attr("transform", event.transform);
       }));
     const g = svg.append('g');
 
     async function loadTree() {
       try {
-        console.log('Fetching tree from', apiEndpoint + '/tree');
-        const res = await fetch(apiEndpoint + '/tree');
+        console.log("Fetching tree from", apiEndpoint + "/tree");
+        const res = await fetch(apiEndpoint + "/tree");
         const data = await res.json();
-        console.log('Tree data:', data);
+        console.log("Tree data:", data);
         const root = d3.hierarchy(data);
         const treeLayout = d3.tree().size([height, width - 160]);
         treeLayout(root);
 
         // links
-        g.selectAll('path.link')
+        g.selectAll("path.link")
           .data(root.links())
-          .enter().append('path')
-          .attr('class', 'link')
-          .attr('fill', 'none')
-          .attr('stroke', '#555')
-          .attr('d', d3.linkHorizontal().x(d => d.y).y(d => d.x));
+          .enter().append("path")
+          .attr("class", "link")
+          .attr("fill", "none")
+          .attr("stroke", "#555")
+          .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
 
         // nodes
-        const node = g.selectAll('g.node')
+        const node = g.selectAll("g.node")
           .data(root.descendants())
-          .enter().append('g')
-          .attr('class', 'node')
-          .attr('transform', d => `translate($${d.y},$${d.x})`);
+          .enter().append("g")
+          .attr("class", "node")
+          .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
         // draw card background (taller to fit manager line)
-        node.append('rect')
-          .attr('x', -75)
-          .attr('y', -40)
-          .attr('width', 150)
-          .attr('height', 80)
-          .attr('fill', d => d.children && d.children.length ? 'purple' : 'pink')
-          .attr('rx', 5)
-          .attr('ry', 5);
+        node.append("rect")
+          .attr("x", -60)
+          .attr("y", -30)
+          .attr("width", 120)
+          .attr("height", 60)
+          .attr("fill", "#0073bb")
+          .attr("rx", 10)
+          .attr("ry", 10);
 
-        // username
-        node.append('text')
-          .attr('dy', -10)
-          .style('text-anchor', 'middle')
-          .style('fill', '#fff')
-          .text(d => d.data.username);
+        // display full name
+        node.append("text")
+          .attr("dy", -18)
+          .style("text-anchor", "middle")
+          .style("font-size", "12px")
+          .style("fill", "#fff")
+          .text(d => ( (d.data.given_name || "") + " " + (d.data.family_name || "") ).trim());
         // groups
-        node.append('text')
-          .attr('dy', 5)
-          .style('text-anchor', 'middle')
-          .style('font-size', '10px')
-          .style('fill', '#fff')
-          .text(d => 'Groups: ' + (d.data.groups || []).join(', '));
+        node.append("text")
+          .attr("dy", 0)
+          .style("text-anchor", "middle")
+          .style("font-size", "12px")
+          .style("fill", "#fff")
+          .text(d => "Groups: " + (d.data.groups || []).join(", "));
         // projects
-        node.append('text')
-          .attr('dy', 15)
-          .style('text-anchor', 'middle')
-          .style('font-size', '10px')
-          .style('fill', '#fff')
-          .text(d => 'Projects: ' + (d.data.projects || []).join(', '));
+        node.append("text")
+          .attr("dy", 15)
+          .style("text-anchor", "middle")
+          .style("font-size", "12px")
+          .style("fill", "#fff")
+          .text(d => "Projects: " + (d.data.projects || []).join(", "));
         // manager (display direct manager username)
-        node.append('text')
-          .attr('dy', 30)
-          .style('text-anchor', 'middle')
-          .style('font-size', '10px')
-          .style('fill', '#fff')
-          .text(d => 'Manager: ' + (d.data.manager || 'None'));
+        node.append("text")
+          .attr("dy", 30)
+          .style("text-anchor", "middle")
+          .style("font-size", "12px")
+          .style("fill", "#fff")
+          .text(d => "Manager: " + (d.data.manager || "None"));
       } catch (e) {
-        console.error('Error loading tree:', e);
+        console.error("Error loading tree:", e);
       }
     }
     loadTree();

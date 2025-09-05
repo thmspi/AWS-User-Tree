@@ -34,3 +34,13 @@ variable "spa_logout_urls" {
   description = "List of allowed logout URLs for the SPA client"
   type        = list(string)
 }
+// Admin user's given name (first name)
+variable "admin_given_name" {
+  description = "First name for the root admin user"
+  type        = string
+}
+// Admin user's family name (last name)
+variable "admin_family_name" {
+  description = "Last name for the root admin user"
+  type        = string
+}
