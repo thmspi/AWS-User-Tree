@@ -2,7 +2,6 @@ variable "stack_id" {
   description = "Unique stack identifier"
   type        = string
 }
-// URI of Docker image for the create_user Lambda (in ECR)
 
 variable "tags" {
   description = "Common tags map"

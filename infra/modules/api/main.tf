@@ -48,8 +48,7 @@ resource "archive_file" "user_tree_zip" {
 resource "aws_lambda_function" "user_tree" {
   filename      = archive_file.user_tree_zip.output_path
   # Force update when ZIP content changes
-  # Use the archive_file resource's computed base64 SHA256 instead of filebase64sha256 on the path
-  source_code_hash = archive_file.user_tree_zip.output_base64sha256
+  source_code_hash = filebase64sha256(archive_file.user_tree_zip.output_path)
   function_name = "${terraform.workspace}-${var.stack_id}-user-tree"
   handler       = "index.handler"
   runtime       = "nodejs22.x"
@@ -86,5 +85,26 @@ resource "aws_apigatewayv2_integration" "lambda" {
   integration_uri        = aws_lambda_function.user_tree.invoke_arn
   payload_format_version = "2.0"
 }
-// Define GET /tree route
 
+// Define GET /tree route
+resource "aws_apigatewayv2_route" "get_tree" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "GET /tree"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+
+// Deploy stage
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.http.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+// Permission for API Gateway to invoke Lambda
+resource "aws_lambda_permission" "api" {
+  statement_id  = "AllowAPIGwInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.user_tree.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
