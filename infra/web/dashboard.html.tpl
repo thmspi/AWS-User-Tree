@@ -10,7 +10,7 @@
     header { padding:1em; background:#0073bb; color:#fff; display:flex; justify-content:space-between; align-items:center; }
     #controls { position:absolute; top:1em; right:1em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
-    #tree-container { flex:1; overflow:auto; padding:1em; transform-origin:0 0; }
+    #tree-container { flex:1; overflow:auto; padding:1em; transform-origin:0 0; background: #fff; }
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
@@ -89,8 +89,8 @@
 
     // Create SVG canvas with correct dimensions
     const svg = d3.select("#tree-container").append("svg")
-      .attr("width", "90%")
-      .attr("height", "90%");
+      .attr("width", "97%")
+      .attr("height", "100%");
     // main group for pan/zoom
     const g = svg.append('g');
     // setup zoom behavior referencing g
