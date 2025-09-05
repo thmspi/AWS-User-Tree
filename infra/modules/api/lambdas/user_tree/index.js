@@ -1,6 +1,9 @@
-// Use AWS SDK v3 in Node.js 22.x runtime
-const { DynamoDBClient, ScanCommand } = require('@aws-sdk/client-dynamodb');
-const client = new DynamoDBClient({});
+// Use AWS SDK v3 DynamoDB DocumentClient for automatic marshalling
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
+// DocumentClient wraps DynamoDBClient and unmarshals attribute values
+const ddbClient = new DynamoDBClient({});
+const client = DynamoDBDocumentClient.from(ddbClient);
 
 exports.handler = async (event) => {
   console.log('Lambda handler invoked with event:', JSON.stringify(event));
@@ -15,6 +18,7 @@ exports.handler = async (event) => {
       console.log('Scanning DynamoDB with params:', JSON.stringify(params));
       const data = await client.send(new ScanCommand(params));
       console.log('Fetched batch items count:', data.Items.length);
+      // DocumentClient returns plain JS objects
       items = items.concat(data.Items);
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
