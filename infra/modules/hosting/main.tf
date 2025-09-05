@@ -162,6 +162,10 @@ resource "null_resource" "dashboard_invalidation" {
   }
   depends_on = [aws_s3_object.dashboard_html]
 
+  lifecycle {
+    ignore_changes = [triggers]
+  }
+
   provisioner "local-exec" {
     command     = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.spa.id} --paths /dashboard.html"
     interpreter = ["bash", "-c"]
