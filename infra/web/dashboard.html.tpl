@@ -80,7 +80,11 @@
           .style("text-anchor", "middle")
           .style("font-size", "14px")
           .style("fill", "#fff")
-          .text(d => `${d.data.given_name || ''} ${d.data.family_name || ''}`.trim());
+          .text(function(d) {
+            var first = d.data.given_name || "";
+            var last = d.data.family_name || "";
+            return (first + " " + last).trim();
+          });
         // display username
         node.append("text")
           .attr("dy", -cardHeight/2 + padding + 18)
