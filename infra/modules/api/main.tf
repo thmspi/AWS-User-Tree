@@ -58,11 +58,22 @@ resource "aws_lambda_function" "user_tree" {
   }
   depends_on = [aws_iam_role_policy.lambda_dynamo, archive_file.user_tree_zip]
 }
+// Attach basic execution policy so Lambda can emit logs to CloudWatch
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
 
 // HTTP API Gateway
 resource "aws_apigatewayv2_api" "http" {
   name          = "${terraform.workspace}-${var.stack_id}-api"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "OPTIONS"]
+    allow_headers = ["*"]
+    max_age       = 3600
+  }
 }
 
 // Integration with Lambda
