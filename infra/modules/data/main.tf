@@ -24,8 +24,10 @@ resource "aws_dynamodb_table_item" "admin" {
     level        = { N    = "0" }
     groups       = { L    = [] }
     projects     = { L    = [] }
-    permissions  = { L    = [] }
-    manager      = { NULL = true }
+  permissions  = { L    = [] }
+  // mark this user explicitly as a manager
+  is_manager   = { BOOL = true }
+  manager      = { NULL = true }
   })
   depends_on = [aws_dynamodb_table.user_tree]
 }

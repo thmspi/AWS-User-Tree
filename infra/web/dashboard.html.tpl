@@ -68,58 +68,50 @@
           .attr("class", "node")
           .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
-        // draw card background
+        // draw card backgrounds and text fields
         const cardWidth = 200;
         const cardHeight = 80;
         const padding = 10;
-        node.append("rect")
-          .attr("x", -cardWidth/2)
-          .attr("y", -cardHeight/2)
-          .attr("width", cardWidth)
-          .attr("height", cardHeight)
-          .attr("fill", d => d.children && d.children.length ? "red" : "blue")
-          .attr("rx", 5)
-          .attr("ry", 5);
-
-        // display full name
-        node.append("text")
-          .attr("dy", -cardHeight/2 + padding + 0)
-          .style("text-anchor", "middle")
-          .style("font-size", "14px")
-          .style("fill", "#fff")
-          .text(function(d) {
-            var first = d.data.given_name || "";
-            var last = d.data.family_name || "";
-            return (first + " " + last).trim();
-          });
-        // display username
-        node.append("text")
-          .attr("dy", -cardHeight/2 + padding + 18)
-          .style("text-anchor", "middle")
-          .style("font-size", "12px")
-          .style("fill", "#fff")
+        node.append('rect')
+          .attr('x', -cardWidth/2)
+          .attr('y', -cardHeight/2)
+          .attr('width', cardWidth)
+          .attr('height', cardHeight)
+          .attr('fill', d => d.data.is_manager
+            ? 'green'
+            : (d.children && d.children.length ? 'red' : 'blue'))
+          .attr('rx', 5)
+          .attr('ry', 5);
+        node.append('text')
+          .attr('dy', -cardHeight/2 + padding)
+          .style('text-anchor', 'middle')
+          .style('font-size', '14px')
+          .style('fill', '#fff')
+          .text(d => ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim());
+        node.append('text')
+          .attr('dy', -cardHeight/2 + padding + 18)
+          .style('text-anchor', 'middle')
+          .style('font-size', '12px')
+          .style('fill', '#fff')
           .text(d => d.data.username);
-        // display groups
-        node.append("text")
-          .attr("dy", -cardHeight/2 + padding + 34)
-          .style("text-anchor", "middle")
-          .style("font-size", "12px")
-          .style("fill", "#fff")
-          .text(d => "Groups: " + (d.data.groups || []).join(", "));
-        // display projects
-        node.append("text")
-          .attr("dy", -cardHeight/2 + padding + 50)
-          .style("text-anchor", "middle")
-          .style("font-size", "12px")
-          .style("fill", "#fff")
-          .text(d => "Projects: " + (d.data.projects || []).join(", "));
-        // manager (display direct manager username)
-        node.append("text")
-          .attr("dy", 30)
-          .style("text-anchor", "middle")
-          .style("font-size", "12px")
-          .style("fill", "#fff")
-          .text(d => "Manager: " + (d.data.manager || "None"));
+        node.append('text')
+          .attr('dy', -cardHeight/2 + padding + 34)
+          .style('text-anchor', 'middle')
+          .style('font-size', '12px')
+          .style('fill', '#fff')
+          .text(d => 'Groups: ' + (d.data.groups||[]).join(', '));
+        node.append('text')
+          .attr('dy', -cardHeight/2 + padding + 50)
+          .style('text-anchor', 'middle')
+          .style('font-size', '12px')
+          .style('fill', '#fff')
+          .text(d => 'Projects: ' + (d.data.projects||[]).join(', '));
+        node.append('text')
+          .attr('dy', 30)
+          .style('text-anchor', 'middle')
+          .style('font-size', '12px')
+          .style('fill', '#fff')
+          .text(d => 'Manager: ' + (d.data.manager||'None'));
       } catch (e) {
         console.error("Error loading tree:", e);
       }

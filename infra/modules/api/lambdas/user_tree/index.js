@@ -53,6 +53,8 @@ exports.handler = async (event) => {
         projects: node.projects || [],
         manager: node.manager || null,
         permissions: node.permissions,
+        // include manager status flag for UI coloring
+        is_manager: node.is_manager || false,
         children: node.children.map(buildNode)
       };
     }
