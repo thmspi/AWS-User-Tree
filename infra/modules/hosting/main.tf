@@ -106,8 +106,10 @@ resource "aws_cloudfront_distribution" "spa" {
     cached_methods           = ["GET", "HEAD"]
     target_origin_id         = "spaS3Origin"
     viewer_protocol_policy   = "redirect-to-https"
-    cache_policy_id          = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    origin_request_policy_id = "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+    # zero TTL in dev to always fetch fresh HTML
+    min_ttl     = var.stack_id == "dev" ? 0 : 0
+    default_ttl = var.stack_id == "dev" ? 0 : 86400
+    max_ttl     = var.stack_id == "dev" ? 0 : 31536000
   }
 
   restrictions {
@@ -154,23 +156,7 @@ resource "aws_s3_object" "dashboard_html" {
   content_type  = "text/html"
   cache_control = "max-age=31536000"
 }
-// automatically invalidate CloudFront cache for dashboard.html using AWS CLI
-resource "null_resource" "dashboard_invalidation" {
-  # trigger when HTML object changes
-  triggers = {
-    etag = aws_s3_object.dashboard_html.etag
-  }
-  depends_on = [aws_s3_object.dashboard_html]
 
-  lifecycle {
-    ignore_changes = [triggers]
-  }
-
-  provisioner "local-exec" {
-    command     = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.spa.id} --paths /dashboard.html"
-    interpreter = ["bash", "-c"]
-  }
-}
 
 output "spa_bucket_name" {
   value = aws_s3_bucket.spa.bucket
