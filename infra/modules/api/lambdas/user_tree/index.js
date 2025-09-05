@@ -2,16 +2,21 @@ const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
 
 exports.handler = async (event) => {
+  console.log('Lambda handler invoked with event:', JSON.stringify(event));
   const tableName = process.env.TABLE_NAME;
+  console.log('Using DynamoDB table:', tableName);
 
   // Fetch all items
   let items = [];
   let params = { TableName: tableName };
   do {
+    console.log('Scanning DynamoDB with params:', JSON.stringify(params));
     const data = await docClient.scan(params).promise();
+    console.log('Fetched batch items count:', data.Items.length);
     items = items.concat(data.Items);
     params.ExclusiveStartKey = data.LastEvaluatedKey;
   } while (params.ExclusiveStartKey);
+  console.log('Total items fetched:', items.length);
 
   // Build hierarchy map
   const tree = {};
@@ -42,10 +47,13 @@ exports.handler = async (event) => {
   }
 
   const hierarchy = buildNode(root);
+  console.log('Built hierarchy:', JSON.stringify(hierarchy));
 
-  return {
+  const response = {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(hierarchy)
   };
+  console.log('Returning response:', response);
+  return response;
 };

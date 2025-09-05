@@ -11,9 +11,6 @@
     #controls { position:absolute; top:1em; right:1em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container { flex:1; overflow:auto; padding:1em; transform-origin:0 0; }
-    ul.tree { list-style:none; padding-left:1em; }
-    ul.tree li { margin:0.5em 0; }
-    ul.tree li:before { content:"└─ "; margin-right:0.5em; }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -22,10 +19,6 @@
     <div>Dashboard</div>
     <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
   </header>
-  <div id="controls">
-    <button id="zoom-out">-</button>
-    <button id="zoom-in">+</button>
-  </div>
   <div id="tree-container"></div>
   <script>
     const apiEndpoint = "${api_endpoint}";
@@ -33,28 +26,52 @@
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // Recursive render of tree as nested UL
-    function renderNode(node) {
-      const li = document.createElement('li');
-      li.textContent = node.username;
-      if (node.children && node.children.length) {
-        const ul = document.createElement('ul'); ul.className = 'tree';
-        node.children.forEach(child => ul.appendChild(renderNode(child)));
-        li.appendChild(ul);
-      }
-      return li;
-    }
+    // Create SVG canvas
+    const svg = d3.select('#tree-container').append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .call(d3.zoom().scaleExtent([0.5, 2]).on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      }));
+    const g = svg.append('g');
 
     async function loadTree() {
       try {
+        console.log('Fetching tree from', apiEndpoint + '/tree');
         const res = await fetch(apiEndpoint + '/tree');
         const data = await res.json();
-        const container = document.getElementById('tree-container');
-        const rootUl = document.createElement('ul'); rootUl.className = 'tree';
-        rootUl.appendChild(renderNode(data));
-        container.appendChild(rootUl);
+        console.log('Tree data:', data);
+        const root = d3.hierarchy(data);
+        const treeLayout = d3.tree().size([height, width - 160]);
+        treeLayout(root);
+
+        // links
+        g.selectAll('path.link')
+          .data(root.links())
+          .enter().append('path')
+          .attr('class', 'link')
+          .attr('fill', 'none')
+          .attr('stroke', '#555')
+          .attr('d', d3.linkHorizontal().x(d => d.y).y(d => d.x));
+
+        // nodes
+        const node = g.selectAll('g.node')
+          .data(root.descendants())
+          .enter().append('g')
+          .attr('class', 'node')
+          .attr('transform', d => `translate(${d.y},${d.x})`);
+
+        node.append('circle')
+          .attr('r', 6)
+          .attr('fill', d => d.children ? '#555' : '#999');
+
+        node.append('text')
+          .attr('dy', 3)
+          .attr('x', d => d.children ? -10 : 10)
+          .style('text-anchor', d => d.children ? 'end' : 'start')
+          .text(d => d.data.username);
       } catch (e) {
-        console.error('Failed to load tree:', e);
+        console.error('Error loading tree:', e);
       }
     }
     loadTree();
