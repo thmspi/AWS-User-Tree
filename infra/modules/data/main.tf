@@ -20,10 +20,10 @@ resource "aws_dynamodb_table_item" "admin" {
   item = jsonencode({
     username    = { S = var.admin_username }
     level       = { N = "0" }
-  groups      = { L  = [] }
-  projects    = { L  = [] }
-  permissions = { L  = [] }
-  manager     = { NULL = true }
+    groups      = { L = [] }
+    projects    = { L = [] }
+    permissions = { L = [] }
+    manager     = { NULL = true }
   })
   depends_on = [aws_dynamodb_table.user_tree]
 }
