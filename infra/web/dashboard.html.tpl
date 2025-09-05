@@ -23,17 +23,21 @@
   <script>
   const apiEndpoint = "@@api_endpoint@@";
     const container = document.getElementById("tree-container");
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    // calculate dimensions after layout
+    const { width, height } = container.getBoundingClientRect();
 
-    // Create SVG canvas
+    // Create SVG canvas with correct dimensions
     const svg = d3.select("#tree-container").append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .call(d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
-        g.attr("transform", event.transform);
-      }));
+      .attr("width", "100%")
+      .attr("height", "100%");
+    // main group for pan/zoom
     const g = svg.append('g');
+    // setup zoom behavior referencing g
+    svg.call(
+      d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      })
+    );
 
     async function loadTree() {
       try {
@@ -44,6 +48,9 @@
         const root = d3.hierarchy(data);
         const treeLayout = d3.tree().size([height, width - 160]);
         treeLayout(root);
+        // clear any existing nodes and links
+        g.selectAll("*").remove();
+        console.log("Rendering nodes:", root.descendants().length);
 
         // links
         g.selectAll("path.link")
