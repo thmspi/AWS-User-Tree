@@ -28,10 +28,13 @@
 				"s3:GetBucketObjectLockConfiguration",
 				"s3:PutBucketTagging",
 				"s3:PutEncryptionConfiguration",
-				"s3:PutBucketOwnershipControls"
+				"s3:PutBucketOwnershipControls",
+				"s3:GetBucketOwnershipControls",
+				"s3:DeleteBucketPolicy"
 			],
 			"Resource": [
-				"arn:aws:s3:::*-spa-*"
+				"arn:aws:s3:::*-spa-*",
+				"arn:aws:s3:::*-*-spa-*"
 			]
 		},
 		{
@@ -59,7 +62,8 @@
 				"cloudfront:CreateOriginAccessControl",
 				"cloudfront:GetOriginAccessControl",
 				"cloudfront:DeleteOriginAccessControl",
-				"cloudfront:TagResource"
+				"cloudfront:TagResource",
+				"cloudfront:ListTagsForResource"
 			],
 			"Resource": [
 				"arn:aws:cloudfront::*:distribution/*",
@@ -89,7 +93,8 @@
 				"cognito-idp:GetGroup",
 				"cognito-idp:DescribeUserPoolDomain",
 				"cognito-idp:DeleteGroup",
-				"cognito-idp:DeleteUserPoolDomain"
+				"cognito-idp:DeleteUserPoolDomain",
+				"cognito-idp:UpdateUserPoolClient"
 			],
 			"Resource": "*"
 		},
@@ -106,7 +111,9 @@
 				"cognito-idp:AdminSetUserPassword",
 				"cognito-idp:AdminGetUser",
 				"cognito-idp:AdminDeleteUser",
-				"cognito-idp:AdminAddUserToGroup"
+				"cognito-idp:AdminAddUserToGroup",
+				"cognito-idp:AdminListGroupsForUser",
+				"cognito-idp:AdminRemoveUserFromGroup"
 			],
 			"Resource": [
 				"arn:aws:cognito-idp:*:*:userpool/*-user-pool/client/*-spa-client",
@@ -120,9 +127,15 @@
 				"cognito-identity:CreateIdentityPool",
 				"cognito-identity:DeleteIdentityPool",
 				"cognito-identity:DescribeIdentityPool",
-				"cognito-identity:ListIdentityPools"
+				"cognito-identity:ListIdentityPools",
+				"cognito-identity:SetIdentityPoolRoles",
+				"cognito-identity:GetIdentityPoolRoles"
 			],
-			"Resource": "arn:aws:cognito-identity:*:*:identitypool/*-identity-pool"
+			"Resource": [
+				"arn:aws:cognito-identity:*:*:identitypool/*-identity-pool",
+				"arn:aws:cognito-identity:eu-west-3:*:identitypool/",
+				"arn:aws:cognito-identity:eu-west-3:*:identitypool/eu-west-3:*"
+			]
 		},
 		{
 			"Sid": "IAMRoles",
@@ -132,7 +145,14 @@
 				"iam:DeleteRole",
 				"iam:PassRole",
 				"iam:AttachRolePolicy",
-				"iam:DetachRolePolicy"
+				"iam:DetachRolePolicy",
+				"iam:GetRole",
+				"iam:ListRolePolicies",
+				"iam:ListAttachedRolePolicies",
+				"iam:ListInstanceProfilesForRole",
+				"iam:PutRolePolicy",
+				"iam:GetRolePolicy",
+				"iam:DeleteRolePolicy"
 			],
 			"Resource": [
 				"arn:aws:iam::*:role/*-authenticated-role",
