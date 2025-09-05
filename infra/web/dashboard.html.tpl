@@ -11,6 +11,50 @@
     #controls { position:absolute; top:1em; right:1em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container { flex:1; overflow:auto; padding:1em; transform-origin:0 0; }
+    /* Slide-in menu for managers */
+    #slide-menu {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 0;
+      width: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+      background: #f0f0f0;
+      border-left: 1px solid #ccc;
+      height: 200px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+    }
+    #slide-menu.open {
+      width: 200px;
+    }
+    #menu-toggle {
+      position: absolute;
+      top: 50%;
+      left: -20px;
+      transform: translateY(-50%) rotate(0deg);
+      transition: transform 0.3s ease;
+      background: #0073bb;
+      color: #fff;
+      border: none;
+      width: 20px;
+      height: 40px;
+      cursor: pointer;
+    }
+    #slide-menu.open #menu-toggle {
+      transform: translateY(-50%) rotate(180deg);
+    }
+    #menu-options {
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    #menu-options button {
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -20,6 +64,14 @@
   <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
   </header>
   <div id="tree-container"></div>
+  <!-- sliding manager menu -->
+  <div id="slide-menu" style="display:none;">
+    <button id="menu-toggle">&#x25C0;</button>
+    <div id="menu-options">
+      <button id="create-user">Create a new user</button>
+      <button id="create-group">Create a group</button>
+    </div>
+  </div>
   <script>
   const apiEndpoint = "${api_endpoint}";
     const container = document.getElementById("tree-container");
@@ -46,6 +98,15 @@
         const data = await res.json();
         console.log("Tree data:", data);
         const root = d3.hierarchy(data);
+        // if the current user is a manager, display creation menu
+        if (data.is_manager) {
+          const menu = document.getElementById('slide-menu');
+          menu.style.display = 'block';
+          const toggleBtn = document.getElementById('menu-toggle');
+          toggleBtn.addEventListener('click', () => {
+            menu.classList.toggle('open');
+          });
+        }
         const treeLayout = d3.tree().size([height, width - 160]);
         treeLayout(root);
         // clear any existing nodes and links
