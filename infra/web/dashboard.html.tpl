@@ -133,7 +133,8 @@
         // center the tree: translate g to center horizontally and add top padding
         const xOffset = (width - 160) / 2;
         const yOffset = 20;
-        g.attr("transform", `translate(${xOffset},${yOffset})`);
+        // center the tree by translating group
+        g.attr("transform", "translate(" + xOffset + "," + yOffset + ")");
 
         console.log("Rendering nodes:", root.descendants().length);
 
