@@ -61,12 +61,12 @@
           .attr('class', 'node')
           .attr('transform', d => `translate($${d.y},$${d.x})`);
 
-        // draw card background
+        // draw card background (taller to fit manager line)
         node.append('rect')
           .attr('x', -75)
-          .attr('y', -30)
+          .attr('y', -40)
           .attr('width', 150)
-          .attr('height', 60)
+          .attr('height', 80)
           .attr('fill', d => d.children && d.children.length ? 'purple' : 'pink')
           .attr('rx', 5)
           .attr('ry', 5);
@@ -86,11 +86,18 @@
           .text(d => 'Groups: ' + (d.data.groups || []).join(', '));
         // projects
         node.append('text')
-          .attr('dy', 20)
+          .attr('dy', 15)
           .style('text-anchor', 'middle')
           .style('font-size', '10px')
           .style('fill', '#fff')
           .text(d => 'Projects: ' + (d.data.projects || []).join(', '));
+        // manager (display direct manager username)
+        node.append('text')
+          .attr('dy', 30)
+          .style('text-anchor', 'middle')
+          .style('font-size', '10px')
+          .style('fill', '#fff')
+          .text(d => 'Manager: ' + (d.data.manager || 'None'));
       } catch (e) {
         console.error('Error loading tree:', e);
       }
