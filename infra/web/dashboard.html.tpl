@@ -59,7 +59,7 @@
           .data(root.descendants())
           .enter().append('g')
           .attr('class', 'node')
-          .attr('transform', d => `translate(${d.y},${d.x})`);
+          .attr('transform', d => `translate($${d.y},$${d.x})`);
 
         node.append('circle')
           .attr('r', 6)
