@@ -74,13 +74,21 @@
       font-size: 14px;
       cursor: pointer;
     }
+    /* outline card on hover */
+    .node rect:hover {
+      stroke: #f39c12;
+      stroke-width: 2px;
+    }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
   <header>
-    <div>Dashboard v0.1</div>
-  <div><a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a></div>
+    <div>Dashboard</div>
+    <div id="controls">
+      <button id="open-aws-console" style="margin-right:0.5em;">AWS Console</button>
+      <a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a>
+    </div>
   </header>
   <div id="tree-container"></div>
   <!-- sliding manager menu -->
@@ -138,6 +146,8 @@
 
         console.log("Rendering nodes:", root.descendants().length);
 
+        // open AWS console button handler
+        document.getElementById('open-aws-console').onclick = () => window.open('https://eu-west-3.console.aws.amazon.com/console/home?region=eu-west-3', '_blank');
         // links
         g.selectAll("path.link")
           .data(root.links())
@@ -154,7 +164,7 @@
           .attr("class", "node")
           .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
-        // draw card backgrounds and text fields
+        // draw card backgrounds and text fields (initial: name & job)
         const cardWidth = 200;
         const cardHeight = 80;
         const padding = 10;
@@ -174,30 +184,76 @@
           .style('font-size', '14px')
           .style('fill', '#fff')
           .text(d => ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim());
+        // show only name and job
         node.append('text')
           .attr('dy', -cardHeight/2 + padding + 18)
           .style('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', '#fff')
-          .text(d => d.data.username);
-        node.append('text')
-          .attr('dy', -cardHeight/2 + padding + 34)
-          .style('text-anchor', 'middle')
-          .style('font-size', '12px')
-          .style('fill', '#fff')
-          .text(d => 'Team: ' + (d.data.team||[]).join(', '));
-        node.append('text')
-          .attr('dy', -cardHeight/2 + padding + 50)
-          .style('text-anchor', 'middle')
-          .style('font-size', '12px')
-          .style('fill', '#fff')
-          .text(d => 'Job: ' + (d.data.job||[]).join(', '));
-        node.append('text')
-          .attr('dy', 30)
-          .style('text-anchor', 'middle')
-          .style('font-size', '12px')
-          .style('fill', '#fff')
-          .text(d => 'Manager: ' + (d.data.manager||'None'));
+          .text(d => (d.data.job||[]).join(', '));
+        // on click, toggle detail popup
+        node.on('click', function(event, d) {
+          const sel = d3.select(this).select('g.popup');
+          if (!sel.empty()) { sel.remove(); return; }
+          const popup = d3.select(this).append('g').attr('class','popup')
+            .attr('transform', `translate(0,${-cardHeight/2 - 10})`);
+          // background
+          popup.append('rect')
+            .attr('x', -cardWidth/2)
+            .attr('y', - (cardHeight + 10))
+            .attr('width', cardWidth)
+            .attr('height', cardHeight + 20)
+            .attr('fill', '#333')
+            .attr('rx', 5).attr('ry',5);
+          // details lines
+          const info = [
+            ((d.data.given_name||'')+' '+(d.data.family_name||'')).trim(),
+            d.data.username,
+            'Job: '+(d.data.job||[]).join(', '),
+            'Team: '+(d.data.team||[]).join(', ')
+          ];
+          info.forEach((text,i) => {
+            popup.append('text')
+              .attr('x', 0)
+              .attr('y', -cardHeight - 10 + 20 + i*18)
+              .style('text-anchor','middle')
+              .style('fill','#fff')
+              .style('font-size','12px')
+              .text(text);
+          });
+          // action buttons
+          const btnY = 0;
+          // Delete
+          popup.append('rect')
+            .attr('x', -cardWidth/2 + 10)
+            .attr('y', btnY)
+            .attr('width', 60)
+            .attr('height',20)
+            .attr('fill','#e74c3c')
+            .attr('rx',3);
+          popup.append('text')
+            .attr('x', -cardWidth/2 + 10 + 30)
+            .attr('y', btnY + 14)
+            .style('text-anchor','middle')
+            .style('fill','#fff')
+            .style('font-size','12px')
+            .text('Delete');
+          // Create
+          popup.append('rect')
+            .attr('x', cardWidth/2 - 70)
+            .attr('y', btnY)
+            .attr('width', 60)
+            .attr('height',20)
+            .attr('fill','#27ae60')
+            .attr('rx',3);
+          popup.append('text')
+            .attr('x', cardWidth/2 - 70 + 30)
+            .attr('y', btnY + 14)
+            .style('text-anchor','middle')
+            .style('fill','#fff')
+            .style('font-size','12px')
+            .text('Create');
+        });
       } catch (e) {
         console.error("Error loading tree:", e);
       }
