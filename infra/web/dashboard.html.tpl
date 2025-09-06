@@ -90,7 +90,6 @@
   <header>
     <div>Dashboard</div>
     <div id="controls">
-      <button id="open-aws-console" style="margin-right:0.5em;">AWS Console</button>
       <a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a>
     </div>
   </header>
@@ -203,8 +202,6 @@
 
         console.log("Rendering nodes:", root.descendants().length);
 
-        // open AWS console button handler
-        document.getElementById('open-aws-console').onclick = () => window.open('https://eu-west-3.console.aws.amazon.com/console/home?region=eu-west-3', '_blank');
         // links
         g.selectAll("path.link")
           .data(root.links())
@@ -364,7 +361,10 @@
         });
         // close modal
         document.getElementById('modal-overlay').style.display = 'none';
-        document.getElementById('slide-menu').style.pointerEvents = 'auto';
+        const slideMenu = document.getElementById('slide-menu');
+        slideMenu.style.pointerEvents = 'auto';
+        // ensure menu is closed
+        slideMenu.classList.remove('open');
         // notify
         if (sendEmail) {
           alert('Credentials sent via email');
@@ -423,6 +423,8 @@
       document.getElementById('close-modal').addEventListener('click', () => {
         modalOverlay.style.display = 'none';
         slideMenu.style.pointerEvents = 'auto';
+        // close sliding menu
+        slideMenu.classList.remove('open');
       });
     }
   </script>
