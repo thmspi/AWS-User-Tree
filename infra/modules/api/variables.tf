@@ -12,6 +12,11 @@ variable "table_name" {
   description = "DynamoDB table name for user tree"
   type        = string
 }
+// DynamoDB table name for teams
+variable "teams_table_name" {
+  description = "DynamoDB table name for teams"
+  type        = string
+}
 // AWS region for resource ARNs
 variable "aws_region" {
   description = "AWS region"

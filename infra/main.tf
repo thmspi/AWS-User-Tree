@@ -64,7 +64,8 @@ module "api" {
   source     = "./modules/api"
   stack_id   = var.stack_id
   tags       = var.tags
-  table_name = module.data.user_tree_table_name
+  table_name        = module.data.user_tree_table_name
+  teams_table_name  = module.data.teams_table_name
   aws_region = var.aws_region
 }
 

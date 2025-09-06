@@ -103,6 +103,47 @@
       <button id="create-group">Create a group</button>
     </div>
   </div>
+  <!-- Create User Modal -->
+  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+    <div id="modal" style="background:#fff; padding:20px; border-radius:8px; width:320px; box-shadow:0 2px 8px rgba(0,0,0,0.26); position:relative;">
+      <h2>Create New User</h2>
+      <form id="create-user-form">
+        <div style="margin-bottom:10px;">
+          <label for="given_name">First Name:</label><br/>
+          <input type="text" id="given_name" name="given_name" style="width:100%;"/>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="family_name">Last Name:</label><br/>
+          <input type="text" id="family_name" name="family_name" style="width:100%;"/>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="username">Username:</label><br/>
+          <input type="text" id="username" name="username" style="width:100%;"/>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="job">Job:</label><br/>
+          <input type="text" id="job" name="job" style="width:100%;"/>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="team">Team:</label><br/>
+          <select id="team" name="team" style="width:100%;"></select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label for="manager">Manager:</label><br/>
+          <select id="manager" name="manager" style="width:100%;"></select>
+        </div>
+        <div style="margin-bottom:10px;">
+          <input type="checkbox" id="is_manager" name="is_manager"/>
+          <label for="is_manager">Is Manager</label>
+        </div>
+        <div style="text-align:right;">
+          <button type="button" id="close-modal">Close</button>
+          <button type="button" id="save-user">Save</button>
+          <button type="button" id="mail-user">Mail</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <script>
   const apiEndpoint = "${api_endpoint}";
     const container = document.getElementById("tree-container");
@@ -248,6 +289,72 @@
       }
     }
     loadTree();
+  </script>
+  <script>
+    document.getElementById('create-user').addEventListener('click', async () => {
+      // fetch teams and managers
+      try {
+        const [teamsRes, managersRes] = await Promise.all([
+          fetch(apiEndpoint + '/teams'),
+          fetch(apiEndpoint + '/managers')
+        ]);
+        const teams = await teamsRes.json();
+        const managers = await managersRes.json();
+        // populate selects
+        const teamSel = document.getElementById('team');
+        teamSel.innerHTML = '';
+        teams.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t;
+          opt.textContent = t;
+          teamSel.appendChild(opt);
+        });
+        const mgrSel = document.getElementById('manager');
+        mgrSel.innerHTML = '';
+        managers.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          mgrSel.appendChild(opt);
+        });
+      } catch (e) {
+        console.error('Error loading teams/managers:', e);
+      }
+      document.getElementById('modal-overlay').style.display = 'flex';
+    });
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('modal-overlay').style.display = 'none';
+    });
+    document.getElementById('save-user').addEventListener('click', async () => {
+      const form = document.getElementById('create-user-form');
+      const payload = {
+        given_name: form.given_name.value,
+        family_name: form.family_name.value,
+        username: form.username.value,
+        job: [form.job.value],
+        team: [form.team.value],
+        manager: form.manager.value,
+        is_manager: form.is_manager.checked
+      };
+      try {
+        const res = await fetch(apiEndpoint + '/create_user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('User created');
+          document.getElementById('modal-overlay').style.display = 'none';
+          loadTree();
+        } else throw new Error(await res.text());
+      } catch (e) {
+        console.error('Error creating user:', e);
+        alert('Error creating user');
+      }
+    });
+    document.getElementById('mail-user').addEventListener('click', () => {
+      alert('Mail function not implemented');
+    });
   </script>
 </body>
 </html>

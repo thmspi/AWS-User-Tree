@@ -11,6 +11,19 @@ resource "aws_dynamodb_table" "user_tree" {
 
   tags = var.tags
 }
+// DynamoDB table for user teams
+resource "aws_dynamodb_table" "teams" {
+  name         = "${terraform.workspace}-${var.stack_id}-teams"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "team_id"
+
+  attribute {
+    name = "team_id"
+    type = "S"
+  }
+
+  tags = var.tags
+}
 
 // Seed the root admin user as the top of the tree
 resource "aws_dynamodb_table_item" "admin" {
