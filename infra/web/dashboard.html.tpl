@@ -323,6 +323,10 @@
     }
     // Main create flow
     async function createUser(sendEmail = false) {
+
+      document.getElementById('modal-overlay').style.display = 'none';
+      document.getElementById('menu-options').style.pointerEvents = 'auto';
+
       const form = document.getElementById('create-user-form');
       const username = form.username.value.trim();
       // check username availability
@@ -360,9 +364,7 @@
           body: JSON.stringify(dynoData)
         });
         // close modal
-        document.getElementById('modal-overlay').style.display = 'none';
-        // re-enable only menu-options interaction
-        document.getElementById('menu-options').style.pointerEvents = 'auto';
+        
         // notify
         if (sendEmail) {
           alert('Credentials sent via email');
