@@ -133,6 +133,15 @@
           <select id="manager" name="manager" style="width:100%;"></select>
         </div>
         <div style="margin-bottom:10px;">
+          <label for="permissions">Permissions:</label><br/>
+          <select id="permissions" name="permissions" multiple style="width:100%; height:80px;">
+            <option value="EC2FullAccess">EC2FullAccess</option>
+            <option value="VPCFullAccess">VPCFullAccess</option>
+            <option value="S3FullAccess">S3FullAccess</option>
+            <option value="RDSFullAccess">RDSFullAccess</option>
+          </select>
+        </div>
+        <div style="margin-bottom:10px;">
           <input type="checkbox" id="is_manager" name="is_manager"/>
           <label for="is_manager">Is Manager</label>
         </div>
@@ -338,6 +347,7 @@
         job: [form.job.value],
         team: [form.team.value],
         manager: form.manager.value,
+        permissions: Array.from(form.permissions.selectedOptions).map(o => o.value),
         is_manager: form.is_manager.checked
       };
       try {
