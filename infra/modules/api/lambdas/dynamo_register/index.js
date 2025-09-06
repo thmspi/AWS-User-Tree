@@ -30,7 +30,18 @@ exports.handler = async (event) => {
     // Store user record
     await client.send(new PutCommand({
       TableName: tableName,
-      Item: { username, given_name, family_name, job, team, is_manager, level }
+      Item: {
+        username,
+        given_name,
+        family_name,
+        job,
+        team,
+        manager,
+        is_manager,
+        level,
+        // initialize own children list
+        children: []
+      }
     }));
     // If manager defined, append this username to parent's children list
     if (manager) {

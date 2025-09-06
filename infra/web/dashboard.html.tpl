@@ -293,7 +293,23 @@
   <script>
     // Utility to generate random password
     function generatePassword() {
-      return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+      const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const lower = 'abcdefghijklmnopqrstuvwxyz';
+      const digits = '0123456789';
+      const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      const all = upper + lower + digits + symbols;
+      let pwd = '';
+      // ensure each category
+      pwd += upper[Math.floor(Math.random() * upper.length)];
+      pwd += lower[Math.floor(Math.random() * lower.length)];
+      pwd += digits[Math.floor(Math.random() * digits.length)];
+      pwd += symbols[Math.floor(Math.random() * symbols.length)];
+      // fill to length 12
+      for (let i = 4; i < 12; i++) {
+        pwd += all[Math.floor(Math.random() * all.length)];
+      }
+      // shuffle characters
+      return pwd.split('').sort(() => Math.random() - 0.5).join('');
     }
     // Main create flow
     async function createUser(sendEmail = false) {
