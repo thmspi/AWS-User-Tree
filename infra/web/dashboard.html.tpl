@@ -204,6 +204,9 @@
             .text(d => d);
         // on click, toggle detail popup
         node.on('click', function(event, d) {
+          // toggle popup: remove existing if present
+          const sel = d3.select(this).select('g.popup');
+          if (!sel.empty()) { sel.remove(); return; }
           // dynamic popup size and position
           const info = [
             ((d.data.given_name||'')+' '+(d.data.family_name||'')).trim(),
@@ -219,7 +222,8 @@
           const popup = d3.select(this).append('g').attr('class','popup')
             // translate up by card half + popup height + margin
             .attr('transform', 'translate(0,' + (-(cardHeight/2) - popupHeight - 5) + ')')
-            .on('click', e => e.stopPropagation());
+            // clicking popup group closes it
+            .on('click', function(e) { d3.select(this).remove(); e.stopPropagation(); });
           // background
           popup.append('rect')
             .attr('x', -popupWidth/2)
