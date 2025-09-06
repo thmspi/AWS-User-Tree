@@ -104,7 +104,7 @@
     </div>
   </div>
   <!-- Create User Modal -->
-  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:9999;">
+  <div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:2147483648;">
     <div id="modal" style="background:#fff; padding:20px; border-radius:8px; width:320px; box-shadow:0 2px 8px rgba(0,0,0,0.26); position:relative;">
       <h2>Create New User</h2>
       <form id="create-user-form">
@@ -320,10 +320,14 @@
       } catch (e) {
         console.error('Error loading teams/managers:', e);
       }
-      document.getElementById('modal-overlay').style.display = 'flex';
+  // show modal and disable slide-menu interactions
+  document.getElementById('modal-overlay').style.display = 'flex';
+  document.getElementById('slide-menu').style.pointerEvents = 'none';
     });
     document.getElementById('close-modal').addEventListener('click', () => {
-      document.getElementById('modal-overlay').style.display = 'none';
+  // hide modal and re-enable slide-menu
+  document.getElementById('modal-overlay').style.display = 'none';
+  document.getElementById('slide-menu').style.pointerEvents = 'auto';
     });
     document.getElementById('save-user').addEventListener('click', async () => {
       const form = document.getElementById('create-user-form');
