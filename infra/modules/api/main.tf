@@ -39,6 +39,26 @@ resource "aws_iam_role_policy" "lambda_dynamo" {
   role   = aws_iam_role.lambda_exec.name
   policy = data.aws_iam_policy_document.dynamo_read.json
 }
+// Policy to allow Cognito IDP operations (user lookup, creation, grouping)
+data "aws_iam_policy_document" "cognito_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "cognito-idp:AdminGetUser",
+      "cognito-idp:AdminCreateUser",
+      "cognito-idp:AdminAddUserToGroup"
+    ]
+    resources = [
+      "arn:aws:cognito-idp:${var.aws_region}:${data.aws_caller_identity.current.account_id}:userpool/${var.user_pool_id}"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_cognito" {
+  name   = "${terraform.workspace}-${var.stack_id}-lambda-cognito-policy"
+  role   = aws_iam_role.lambda_exec.name
+  policy = data.aws_iam_policy_document.cognito_access.json
+}
 
 // Package and deploy user tree Lambda function assets
 resource "archive_file" "user_tree_zip" {
@@ -119,7 +139,7 @@ resource "aws_lambda_function" "checkavailability" {
   environment {
     variables = { USER_POOL_ID = var.user_pool_id }
   }
-  depends_on = [archive_file.checkavailability_zip]
+  depends_on = [archive_file.checkavailability_zip, aws_iam_role_policy.lambda_cognito]
 }
 // Package and deploy cognito_register Lambda
 resource "archive_file" "cognito_register_zip" {
@@ -137,7 +157,7 @@ resource "aws_lambda_function" "cognito_register" {
   environment {
     variables = { USER_POOL_ID = var.user_pool_id }
   }
-  depends_on = [archive_file.cognito_register_zip]
+  depends_on = [archive_file.cognito_register_zip, aws_iam_role_policy.lambda_cognito]
 }
 // Package and deploy dynamo_register Lambda
 resource "archive_file" "dynamo_register_zip" {
