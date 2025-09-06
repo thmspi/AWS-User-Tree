@@ -168,7 +168,7 @@
           .attr("class", "node")
           .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
-        // draw card backgrounds and text fields (initial: name & job)
+        // draw card backgrounds and card text
   const cardWidth = 120;
   const cardHeight = 50;
         const padding = 10;
@@ -183,18 +183,19 @@
           .attr('rx', 5)
           .attr('ry', 5);
         node.append('text')
-          .attr('dy', -cardHeight/4)
-          .style('text-anchor', 'middle')
-          .style('font-size', '14px')
+          .attr('text-anchor', 'middle')
           .style('fill', '#fff')
-          .text(d => ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim());
-        // show only name and job
-        node.append('text')
-          .attr('dy', cardHeight/4)
-          .style('text-anchor', 'middle')
-          .style('font-size', '12px')
-          .style('fill', '#fff')
-          .text(d => (d.data.job||[]).join(', '));
+          // use tspan to stack lines
+          .selectAll('tspan')
+          .data(d => [
+            ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim(),
+            (d.data.job||[]).join(', ')
+          ])
+          .enter().append('tspan')
+            .attr('x', 0)
+            .attr('dy', (d,i) => i === 0 ? -(padding/2) : (padding))
+            .style('font-size', (d,i) => i === 0 ? '14px' : '12px')
+            .text(d => d);
         // on click, toggle detail popup
         node.on('click', function(event, d) {
           const sel = d3.select(this).select('g.popup');
@@ -227,26 +228,6 @@
               .style('font-size','12px')
               .text(text);
           });
-          // Delete button
-          const btnY = 0;
-          const delW = 40;
-          const delX = -cardWidth/2 + padding;
-          popup.append('rect')
-            .attr('x', delX)
-            .attr('y', btnY)
-            .attr('width', delW)
-            .attr('height', 20)
-            .attr('fill', '#e74c3c')
-            .attr('rx', 3)
-            .on('click', e => { e.stopPropagation(); console.log('delete', d.data.username); });
-          popup.append('text')
-            .attr('x', delX + delW/2)
-            .attr('y', btnY + 14)
-            .style('text-anchor', 'middle')
-            .style('fill', '#fff')
-            .style('font-size', '12px')
-            .text('Delete')
-            .on('click', e => e.stopPropagation());
         });
       } catch (e) {
         console.error("Error loading tree:", e);
