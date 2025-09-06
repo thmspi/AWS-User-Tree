@@ -46,4 +46,8 @@ resource "aws_dynamodb_table_item" "admin" {
   # manager attribute removed; children list handles hierarchy
   })
   depends_on = [aws_dynamodb_table.user_tree]
+  lifecycle {
+    # ignore dynamic changes to the item (e.g., children list managed externally)
+    ignore_changes = [item]
+  }
 }

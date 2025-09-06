@@ -154,12 +154,14 @@
     const svg = d3.select("#tree-container").append("svg")
       .attr("width", "97%")
       .attr("height", "100%");
-    // main group for pan/zoom
-    const g = svg.append('g');
+    // separate groups: zoomGroup gets pan/zoom, g is centered content
+    const zoomGroup = svg.append('g');
+    const g = zoomGroup.append('g');
     // setup zoom behavior referencing g
     svg.call(
       d3.zoom().scaleExtent([0.5, 2]).on("zoom", (event) => {
-        g.attr("transform", event.transform);
+        // apply pan/zoom to outer group
+        zoomGroup.attr("transform", event.transform);
       })
     );
 
@@ -194,7 +196,8 @@
         // center the tree: translate g to center horizontally and add top padding
         // center root horizontally
         const xOffset = width / 2;
-        const yOffset = 20;
+        // push root down to avoid cropping
+        const yOffset = 80;
         // center the tree by translating group
         g.attr("transform", "translate(" + xOffset + "," + yOffset + ")");
 
