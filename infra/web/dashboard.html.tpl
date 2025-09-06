@@ -142,6 +142,19 @@
       </form>
     </div>
   </div>
+  <!-- Manage Teams Modal -->
+  <div id="team-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:2147483648;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:360px; box-shadow:0 2px 8px rgba(0,0,0,0.26); position:relative;">
+      <h2>Manage Teams</h2>
+      <ul id="team-list" style="list-style:none; padding:0; max-height:200px; overflow:auto;"></ul>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <input type="text" id="new-team-name" placeholder="Team name" style="flex:1;" />
+        <input type="color" id="new-team-color" value="#0073bb" />
+        <button type="button" id="add-team-btn">Add</button>
+      </div>
+      <button type="button" id="close-team-modal" style="position:absolute; top:10px; right:10px;">✕</button>
+    </div>
+  </div>
   <script>
   const apiEndpoint = "${api_endpoint}";
     const container = document.getElementById("tree-container");
@@ -421,6 +434,45 @@
         document.getElementById('menu-options').style.pointerEvents = 'auto';
       });
     }
+  </script>
+  <script>
+    // Manage Teams popup
+document.getElementById('create-group').textContent = 'Manage Teams';
+document.getElementById('create-group').addEventListener('click', async () => {
+  const overlay = document.getElementById('team-modal-overlay');
+  const listEl = document.getElementById('team-list'); listEl.innerHTML = '';
+  try {
+    const teams = await fetch(apiEndpoint + '/teams').then(r => r.json());
+    teams.forEach(t => {
+      const li = document.createElement('li');
+      const color = t.color || '#0073bb';
+      li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:${color};margin-right:8px;"></span>${t.name}` +
+                     ` <button data-name="${t.name}" class="remove-team">-</button>`;
+      listEl.appendChild(li);
+    });
+  } catch(e) { console.error(e); }
+  overlay.style.display = 'flex';
+});
+document.getElementById('close-team-modal').addEventListener('click', () => {
+  document.getElementById('team-modal-overlay').style.display = 'none';
+});
+document.getElementById('add-team-btn').addEventListener('click', async () => {
+  const name = document.getElementById('new-team-name').value.trim();
+  const color = document.getElementById('new-team-color').value;
+  if (!name) return;
+  try { await fetch(apiEndpoint + '/teams', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,color})}); }
+  catch(e){console.error(e);}  
+  document.getElementById('create-group').click();
+});
+// delegate remove
+document.getElementById('team-list').addEventListener('click', async e => {
+  if (e.target.classList.contains('remove-team')) {
+    const name = e.target.dataset.name;
+    try { await fetch(apiEndpoint + '/teams/' + encodeURIComponent(name), {method:'DELETE'}); }
+    catch(e){console.error(e);}  
+    document.getElementById('create-group').click();
+  }
+});
   </script>
 </body>
 </html>
