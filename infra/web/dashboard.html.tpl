@@ -193,6 +193,11 @@
         const res = await fetch(apiEndpoint + "/tree");
         const data = await res.json();
         console.log("Tree data:", data);
+        // fetch team color map
+        const teamsRes = await fetch(apiEndpoint + '/teams');
+        const teamsList = await teamsRes.json();
+        const teamColorMap = {};
+        teamsList.forEach(t => { teamColorMap[t.name] = t.color; });
         const root = d3.hierarchy(data);
         // if the current user is a manager, display creation menu
         if (data.is_manager) {
@@ -246,9 +251,14 @@
           .attr('y', -cardHeight/2)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
-          .attr('fill', d => d.data.is_manager
-            ? 'green'
-            : (d.children && d.children.length ? 'red' : 'blue'))
+          .attr('fill', d => {
+            if (d.data.is_manager) return 'green';
+            if (d.data.team && d.data.team.length) {
+              return teamColorMap[d.data.team[0]] || 'blue';
+            }
+            if (d.children && d.children.length) return 'red';
+            return 'blue';
+          })
           .attr('rx', 5)
           .attr('ry', 5);
         node.append('text')
@@ -410,8 +420,12 @@
            // populate selects
            const teamSel = document.getElementById('team');
            teamSel.innerHTML = '';
+           // populate team dropdown with name (and store color)
            teams.forEach(t => {
-             const opt = document.createElement('option'); opt.value = t; opt.textContent = t;
+             const opt = document.createElement('option');
+             opt.value = t.name;
+             opt.textContent = t.name;
+             opt.dataset.color = t.color;
              teamSel.appendChild(opt);
            });
            const mgrSel = document.getElementById('manager');
