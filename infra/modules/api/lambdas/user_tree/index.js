@@ -24,21 +24,18 @@ exports.handler = async (event) => {
     } while (params.ExclusiveStartKey);
     console.log('Total items fetched:', items.length);
 
-    // Build hierarchy map
+    // Build hierarchy map using stored children lists
     const tree = {};
     items.forEach(item => {
-      tree[item.username] = { ...item, children: [] };
+      tree[item.username] = {
+        ...item,
+        // DynamoDB stores children as array attribute
+        children: item.children || []
+      };
     });
 
-    // Assign children to parents
-    Object.values(tree).forEach(node => {
-      if (node.manager && tree[node.manager]) {
-        tree[node.manager].children.push(node.username);
-      }
-    });
-
-    // Identify root (admin)
-    const root = items.find(i => i.level === 0)?.username;
+  // Identify root (level 0)
+  const root = items.find(i => i.level === 0)?.username;
 
     // Recursive build
     function buildNode(username) {
