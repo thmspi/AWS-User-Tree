@@ -169,6 +169,11 @@
       const header = document.querySelector('header');
       const menu = document.getElementById('slide-menu');
       if(header && menu) menu.style.top = header.clientHeight + 'px';
+         // bind menu-toggle click once
+     const toggleBtn = document.getElementById('menu-toggle');
+     if (toggleBtn) toggleBtn.addEventListener('click', () => {
+       document.getElementById('slide-menu').classList.toggle('open');
+     });
     });
     async function loadTree() {
       try {
@@ -179,12 +184,7 @@
         const root = d3.hierarchy(data);
         // if the current user is a manager, display creation menu
         if (data.is_manager) {
-          const menu = document.getElementById('slide-menu');
-          menu.style.display = 'block';
-          const toggleBtn = document.getElementById('menu-toggle');
-          toggleBtn.addEventListener('click', () => {
-            menu.classList.toggle('open');
-          });
+          document.getElementById('slide-menu').style.display = 'block';
         }
         // vertical orientation: width controls x-axis, height controls y-axis
         // use fixed node size: [horizontalSpacing, verticalSpacing]
