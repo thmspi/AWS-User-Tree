@@ -431,5 +431,46 @@
 +    document.getElementById('save-user').addEventListener('click', () => createUser(false));
 +    document.getElementById('mail-user').addEventListener('click', () => createUser(true));
   </script>
+  <script>
+    // Open Create User modal
+    {
+      const btnCreate = document.getElementById('create-user');
+      const modalOverlay = document.getElementById('modal-overlay');
+      const slideMenu = document.getElementById('slide-menu');
+      btnCreate.addEventListener('click', async () => {
+        // fetch teams and managers
+        try {
+          const [teamsRes, managersRes] = await Promise.all([
+            fetch(apiEndpoint + '/teams'),
+            fetch(apiEndpoint + '/managers')
+          ]);
+          const teams = await teamsRes.json();
+          const managers = await managersRes.json();
+          // populate selects
+          const teamSel = document.getElementById('team');
+          teamSel.innerHTML = '';
+          teams.forEach(t => {
+            const opt = document.createElement('option'); opt.value = t; opt.textContent = t;
+            teamSel.appendChild(opt);
+          });
+          const mgrSel = document.getElementById('manager');
+          mgrSel.innerHTML = '';
+          managers.forEach(m => {
+            const opt = document.createElement('option'); opt.value = m; opt.textContent = m;
+            mgrSel.appendChild(opt);
+          });
+        } catch (e) {
+          console.error('Error loading teams/managers:', e);
+        }
+        modalOverlay.style.display = 'flex';
+        slideMenu.style.pointerEvents = 'none';
+      });
+      // Close modal
+      document.getElementById('close-modal').addEventListener('click', () => {
+        modalOverlay.style.display = 'none';
+        slideMenu.style.pointerEvents = 'auto';
+      });
+    }
+  </script>
 </body>
 </html>
