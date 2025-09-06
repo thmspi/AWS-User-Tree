@@ -1,0 +1,8 @@
+{
+  "name": "checkavailability_lambda",
+  "version": "1.0.0",
+  "description": "Check username availability in Cognito",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.500.0"
+  }
+}

@@ -103,6 +103,63 @@ resource "aws_lambda_function" "fetch_manager" {
   }
   depends_on = [archive_file.fetch_manager_zip]
 }
+// Package and deploy checkavailability Lambda
+resource "archive_file" "checkavailability_zip" {
+  type       = "zip"
+  source_dir = "${path.module}/lambdas/checkavailability"
+  output_path = "${path.module}/checkavailability.zip"
+}
+resource "aws_lambda_function" "checkavailability" {
+  filename         = archive_file.checkavailability_zip.output_path
+  source_code_hash = archive_file.checkavailability_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-${var.stack_id}-checkavailability"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = { USER_POOL_ID = var.user_pool_id }
+  }
+  depends_on = [archive_file.checkavailability_zip]
+}
+// Package and deploy cognito_register Lambda
+resource "archive_file" "cognito_register_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/cognito_register"
+  output_path = "${path.module}/cognito_register.zip"
+}
+resource "aws_lambda_function" "cognito_register" {
+  filename         = archive_file.cognito_register_zip.output_path
+  source_code_hash = archive_file.cognito_register_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-${var.stack_id}-cognito-register"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = { USER_POOL_ID = var.user_pool_id }
+  }
+  depends_on = [archive_file.cognito_register_zip]
+}
+// Package and deploy dynamo_register Lambda
+resource "archive_file" "dynamo_register_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/dynamo_register"
+  output_path = "${path.module}/dynamo_register.zip"
+}
+resource "aws_lambda_function" "dynamo_register" {
+  filename         = archive_file.dynamo_register_zip.output_path
+  source_code_hash = archive_file.dynamo_register_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-${var.stack_id}-dynamo-register"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = {
+      TABLE_NAME       = var.table_name
+      TEAMS_TABLE      = var.teams_table_name
+    }
+  }
+  depends_on = [archive_file.dynamo_register_zip]
+}
 // Attach basic execution policy so Lambda can emit logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_exec.name
@@ -115,7 +172,7 @@ resource "aws_apigatewayv2_api" "http" {
   protocol_type = "HTTP"
   cors_configuration {
     allow_origins = ["*"]
-    allow_methods = ["GET", "OPTIONS"]
+    allow_methods = ["GET", "OPTIONS", "POST"]
     allow_headers = ["*"]
     max_age       = 3600
   }
@@ -142,12 +199,51 @@ resource "aws_apigatewayv2_integration" "fetch_manager" {
   integration_uri        = aws_lambda_function.fetch_manager.invoke_arn
   payload_format_version = "2.0"
 }
+// Integration for checkavailability
+resource "aws_apigatewayv2_integration" "checkavailability" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.checkavailability.invoke_arn
+  payload_format_version = "2.0"
+}
+// Integration for cognito_register
+resource "aws_apigatewayv2_integration" "cognito_register" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.cognito_register.invoke_arn
+  payload_format_version = "2.0"
+}
+// Integration for dynamo_register
+resource "aws_apigatewayv2_integration" "dynamo_register" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.dynamo_register.invoke_arn
+  payload_format_version = "2.0"
+}
 
 // Define GET /tree route
 resource "aws_apigatewayv2_route" "get_tree" {
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "GET /tree"
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+}
+// Route for checkavailability
+resource "aws_apigatewayv2_route" "post_checkavailability" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /checkavailability"
+  target    = "integrations/${aws_apigatewayv2_integration.checkavailability.id}"
+}
+// Route for cognito_register
+resource "aws_apigatewayv2_route" "post_cognito_register" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /cognito_register"
+  target    = "integrations/${aws_apigatewayv2_integration.cognito_register.id}"
+}
+// Route for dynamo_register
+resource "aws_apigatewayv2_route" "post_dynamo_register" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /dynamo_register"
+  target    = "integrations/${aws_apigatewayv2_integration.dynamo_register.id}"
 }
 // Route for fetch_team
 resource "aws_apigatewayv2_route" "get_teams" {
@@ -190,6 +286,30 @@ resource "aws_lambda_permission" "fetch_manager" {
   statement_id  = "AllowFetchManagerInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.fetch_manager.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for checkavailability
+resource "aws_lambda_permission" "checkavailability" {
+  statement_id  = "AllowCheckAvailabilityInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.checkavailability.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for cognito_register
+resource "aws_lambda_permission" "cognito_register" {
+  statement_id  = "AllowCognitoRegisterInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.cognito_register.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for dynamo_register
+resource "aws_lambda_permission" "dynamo_register" {
+  statement_id  = "AllowDynamoRegisterInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.dynamo_register.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }

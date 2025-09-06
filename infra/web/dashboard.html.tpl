@@ -338,37 +338,98 @@
   document.getElementById('modal-overlay').style.display = 'none';
   document.getElementById('slide-menu').style.pointerEvents = 'auto';
     });
-    document.getElementById('save-user').addEventListener('click', async () => {
-      const form = document.getElementById('create-user-form');
-      const payload = {
-        given_name: form.given_name.value,
-        family_name: form.family_name.value,
-        username: form.username.value,
-        job: [form.job.value],
-        team: [form.team.value],
-        manager: form.manager.value,
-        permissions: Array.from(form.permissions.selectedOptions).map(o => o.value),
-        is_manager: form.is_manager.checked
-      };
-      try {
-        const res = await fetch(apiEndpoint + '/create_user', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          alert('User created');
-          document.getElementById('modal-overlay').style.display = 'none';
-          loadTree();
-        } else throw new Error(await res.text());
-      } catch (e) {
-        console.error('Error creating user:', e);
-        alert('Error creating user');
-      }
-    });
-    document.getElementById('mail-user').addEventListener('click', () => {
-      alert('Mail function not implemented');
-    });
+-    document.getElementById('save-user').addEventListener('click', async () => {
+-      const form = document.getElementById('create-user-form');
+-      const payload = {
+-        given_name: form.given_name.value,
+-        family_name: form.family_name.value,
+-        username: form.username.value,
+-        job: [form.job.value],
+-        team: [form.team.value],
+-        manager: form.manager.value,
+-        permissions: Array.from(form.permissions.selectedOptions).map(o => o.value),
+-        is_manager: form.is_manager.checked
+-      };
+-      try {
+-        const res = await fetch(apiEndpoint + '/create_user', {
+-          method: 'POST',
+-          headers: { 'Content-Type': 'application/json' },
+-          body: JSON.stringify(payload)
+-        });
+-        if (res.ok) {
+-          alert('User created');
+-          document.getElementById('modal-overlay').style.display = 'none';
+-          loadTree();
+-        } else throw new Error(await res.text());
+-      } catch (e) {
+-        console.error('Error creating user:', e);
+-        alert('Error creating user');
+-      }
+-    });
+-    document.getElementById('mail-user').addEventListener('click', () => {
+-      alert('Mail function not implemented');
+-    });
++    // Utility to generate random password
++    function generatePassword() {
++      return Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
++    }
++    // Main create flow
++    async function createUser(sendEmail = false) {
++      const form = document.getElementById('create-user-form');
++      const username = form.username.value.trim();
++      // check username availability
++      const availRes = await fetch(apiEndpoint + '/checkavailability', {
++        method: 'POST', headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ username })
++      });
++      const avail = await availRes.json();
++      if (!avail.available) {
++        alert('Username already taken');
++        return;
++      }
++      const password = generatePassword();
++      const userData = {
++        username,
++        given_name: form.given_name.value,
++        family_name: form.family_name.value,
++        password,
++        permissions: Array.from(form.permissions.selectedOptions).map(o => o.value)
++      };
++      try {
++        // register in Cognito
++        await fetch(apiEndpoint + '/cognito_register', {
++          method: 'POST', headers: { 'Content-Type': 'application/json' },
++          body: JSON.stringify(userData)
++        });
++        // store in DynamoDB
++        const dynoData = Object.assign({}, userData, {
++          job: [form.job.value],
++          team: [form.team.value],
++          manager: form.manager.value,
++          is_manager: form.is_manager.checked
++        });
++        await fetch(apiEndpoint + '/dynamo_register', {
++          method: 'POST', headers: { 'Content-Type': 'application/json' },
++          body: JSON.stringify(dynoData)
++        });
++        // close modal
++        document.getElementById('modal-overlay').style.display = 'none';
++        document.getElementById('slide-menu').style.pointerEvents = 'auto';
++        // notify
++        if (sendEmail) {
++          alert('Credentials sent via email');
++        } else {
++          alert('User created\nUsername: ' + username + '\nPassword: ' + password);
++        }
++        // refresh tree
++        loadTree();
++      } catch (err) {
++        console.error('Error in create flow:', err);
++        alert('Error creating user');
++      }
++    }
++    document.getElementById('save-user').addEventListener('click', () => createUser(false));
++    document.getElementById('mail-user').addEventListener('click', () => createUser(true));
   </script>
 </body>
 </html>

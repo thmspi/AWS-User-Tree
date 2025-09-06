@@ -66,7 +66,8 @@ module "api" {
   tags       = var.tags
   table_name        = module.data.user_tree_table_name
   teams_table_name  = module.data.teams_table_name
-  aws_region = var.aws_region
+    aws_region         = var.aws_region
+    user_pool_id       = module.auth.user_pool_id
 }
 
 locals {

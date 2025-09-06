@@ -22,3 +22,8 @@ variable "aws_region" {
   description = "AWS region"
   type        = string
 }
+// Cognito User Pool ID for registration functions
+variable "user_pool_id" {
+  description = "Cognito User Pool ID"
+  type        = string
+}
