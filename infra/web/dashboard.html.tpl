@@ -186,12 +186,14 @@
           });
         }
         // vertical orientation: width controls x-axis, height controls y-axis
-        const treeLayout = d3.tree().size([width - 160, height]);
+        // use fixed node size: [horizontalSpacing, verticalSpacing]
+        const treeLayout = d3.tree().nodeSize([150, 100]);
         treeLayout(root);
         // clear any existing nodes and links
         g.selectAll("*").remove();
         // center the tree: translate g to center horizontally and add top padding
-        const xOffset = (width - 160) / 2;
+        // center root horizontally
+        const xOffset = width / 2;
         const yOffset = 20;
         // center the tree by translating group
         g.attr("transform", "translate(" + xOffset + "," + yOffset + ")");
