@@ -196,7 +196,7 @@
           const sel = d3.select(this).select('g.popup');
           if (!sel.empty()) { sel.remove(); return; }
           const popup = d3.select(this).append('g').attr('class','popup')
-            .attr('transform', `translate(0,${-cardHeight/2 - 10})`);
+            .attr('transform', 'translate(0,' + (-cardHeight/2 - 10) + ')');
           // background
           popup.append('rect')
             .attr('x', -cardWidth/2)
