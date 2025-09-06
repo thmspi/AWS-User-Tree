@@ -446,8 +446,8 @@ document.getElementById('create-group').addEventListener('click', async () => {
     teams.forEach(t => {
       const li = document.createElement('li');
       const color = t.color || '#0073bb';
-      li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:${color};margin-right:8px;"></span>${t.name}` +
-                     ` <button data-name="${t.name}" class="remove-team">-</button>`;
+    li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${color};margin-right:8px;"></span>$${t.name}` +
+             ` <button data-name="$${t.name}" class="remove-team">-</button>`;
       listEl.appendChild(li);
     });
   } catch(e) { console.error(e); }
