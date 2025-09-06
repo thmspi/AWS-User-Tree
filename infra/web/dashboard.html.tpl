@@ -185,7 +185,8 @@
             menu.classList.toggle('open');
           });
         }
-        const treeLayout = d3.tree().size([height, width - 160]);
+        // vertical orientation: width controls x-axis, height controls y-axis
+        const treeLayout = d3.tree().size([width - 160, height]);
         treeLayout(root);
         // clear any existing nodes and links
         g.selectAll("*").remove();
@@ -206,14 +207,21 @@
           .attr("class", "link")
           .attr("fill", "none")
           .attr("stroke", "#555")
-          .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+          .attr("d", function(d) {
+            // vertical tree: x is horizontal, y is depth vertical
+            return "M" + d.source.x + "," + d.source.y
+              + "C" + (d.source.x + d.target.x) / 2 + "," + d.source.y
+              + " " + (d.source.x + d.target.x) / 2 + "," + d.target.y
+              + " " + d.target.x + "," + d.target.y;
+          });
 
         // nodes
         const node = g.selectAll("g.node")
           .data(root.descendants())
           .enter().append("g")
           .attr("class", "node")
-          .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+          // vertical tree: x is horizontal, y is vertical
+          .attr("transform", d => "translate(" + d.x + "," + d.y + ")");
 
         // draw card backgrounds and card text
   const cardWidth = 120;
