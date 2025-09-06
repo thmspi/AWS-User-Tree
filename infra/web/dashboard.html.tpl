@@ -361,7 +361,7 @@
         });
         // close modal
         document.getElementById('modal-overlay').style.display = 'none';
-        // re-enable menu options interaction
+        // re-enable only menu-options interaction
         document.getElementById('menu-options').style.pointerEvents = 'auto';
         // notify
         if (sendEmail) {
@@ -415,13 +415,13 @@
            console.error('Error loading teams/managers:', e);
          }
          modalOverlay.style.display = 'flex';
-         // disable menu options but keep toggle button active
+         // disable just menu-options, leave toggle active
          document.getElementById('menu-options').style.pointerEvents = 'none';
       });
       // Close modal
       document.getElementById('close-modal').addEventListener('click', () => {
-        modalOverlay.style.display = 'none';
-        // re-enable menu options
+        document.getElementById('modal-overlay').style.display = 'none';
+        // re-enable only menu-options
         document.getElementById('menu-options').style.pointerEvents = 'auto';
       });
     }
