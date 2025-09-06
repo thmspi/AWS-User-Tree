@@ -27,6 +27,7 @@ exports.handler = async (event) => {
       Username: username,
       TemporaryPassword: password,
       UserAttributes: [
+        { Name: 'email', Value: username },
         { Name: 'given_name', Value: given_name },
         { Name: 'family_name', Value: family_name }
       ],
