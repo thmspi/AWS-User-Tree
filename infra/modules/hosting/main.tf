@@ -157,7 +157,8 @@ resource "aws_s3_object" "dashboard_html" {
                     "${path.module}/../../web/dashboard.html.tpl",
                     {
                       api_endpoint = var.dashboard_api_endpoint,
-                      logout_url   = var.dashboard_logout_url
+                      logout_url   = var.dashboard_logout_url,
+                      login_url    = var.dashboard_login_url
                     }
                   )
   content_type  = "text/html"

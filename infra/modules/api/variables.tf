@@ -27,3 +27,13 @@ variable "user_pool_id" {
   description = "Cognito User Pool ID"
   type        = string
 }
+// Root admin email, used as SES source address
+variable "admin_username" {
+  description = "Admin user email, used as SES source" 
+  type        = string
+}
+// Dashboard login URL to include in emails
+variable "login_url" {
+  description = "User dashboard login URL"
+  type        = string
+}

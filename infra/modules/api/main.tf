@@ -182,6 +182,56 @@ resource "aws_lambda_function" "dynamo_register" {
   }
   depends_on = [archive_file.dynamo_register_zip]
 }
+// Package and deploy send_notification Lambda (SMS via SNS)
+// Package and deploy send_mail Lambda (email via SES)
+resource "archive_file" "send_mail_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/send_mail"
+  output_path = "${path.module}/send_mail.zip"
+}
+// Policy for SES send email
+resource "aws_iam_role_policy" "lambda_ses" {
+  name   = "${terraform.workspace}-${var.stack_id}-lambda-ses-policy"
+  role   = aws_iam_role.lambda_exec.name
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["ses:SendEmail","ses:SendRawEmail"],
+      Resource = "*"
+    }]
+  })
+}
+resource "aws_lambda_function" "send_mail" {
+  filename         = archive_file.send_mail_zip.output_path
+  source_code_hash = archive_file.send_mail_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-${var.stack_id}-send-mail"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = { SES_SOURCE_EMAIL = var.admin_username }
+  }
+  depends_on = [archive_file.send_mail_zip, aws_iam_role_policy.lambda_ses]
+}
+resource "aws_lambda_permission" "send_mail" {
+  statement_id  = "AllowAPIGWInvokeSendMail"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.send_mail.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/POST/send_mail"
+}
+resource "aws_apigatewayv2_integration" "send_mail" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.send_mail.invoke_arn
+  payload_format_version = "2.0"
+}
+resource "aws_apigatewayv2_route" "post_send_mail" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /send_mail"
+  target    = "integrations/${aws_apigatewayv2_integration.send_mail.id}"
+}
 // Attach basic execution policy so Lambda can emit logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_exec.name

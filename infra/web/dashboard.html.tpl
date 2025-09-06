@@ -363,10 +363,24 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dynoData)
         });
-        // close modal
-        
-        // notify
+        // close modal overlay
+        document.getElementById('modal-overlay').style.display = 'none';
+        // re-enable only menu options
+        document.getElementById('menu-options').style.pointerEvents = 'auto';
+        // send email via send_mail Lambda if requested
         if (sendEmail) {
+          // include email (using username) and login URL
+          await fetch(apiEndpoint + '/send_mail', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              given_name: form.given_name.value,
+              family_name: form.family_name.value,
+              username,
+              password,
+              email: username,
+              login_url: '${login_url}'
+            })
+          });
           alert('Credentials sent via email');
         } else {
           alert('User created\nUsername: ' + username + '\nPassword: ' + password);
