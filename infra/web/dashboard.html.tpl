@@ -7,8 +7,8 @@
   <title>Dashboard - AWS User Tree SPA</title>
   <style>
     body { background-color: black;margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; height:100vh; }
-    header { padding:1em; background:#0073bb; color:#fff; display:flex; justify-content:space-between; align-items:center; }
-    #controls { position:absolute; top:1em; right:1em; }
+  header { padding:1em; background:#0073bb; color:#fff; display:flex; align-items:center; }
+  #controls { margin-left:auto; display:flex; align-items:center; gap:0.5em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container {
       flex:1;
@@ -165,8 +165,8 @@
           .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
         // draw card backgrounds and text fields (initial: name & job)
-        const cardWidth = 200;
-        const cardHeight = 80;
+  const cardWidth = 120;
+  const cardHeight = 50;
         const padding = 10;
         node.append('rect')
           .attr('x', -cardWidth/2)
@@ -186,7 +186,7 @@
           .text(d => ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim());
         // show only name and job
         node.append('text')
-          .attr('dy', -cardHeight/2 + padding + 18)
+          .attr('dy', -cardHeight/2 + padding + 12)
           .style('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', '#fff')
@@ -221,38 +221,26 @@
               .style('font-size','12px')
               .text(text);
           });
-          // action buttons
+          // action button: Delete only
           const btnY = 0;
-          // Delete
-          popup.append('rect')
+          const delRect = popup.append('rect')
+            .attr('class', 'popup-delete')
             .attr('x', -cardWidth/2 + 10)
             .attr('y', btnY)
-            .attr('width', 60)
+            .attr('width', 50)
             .attr('height',20)
             .attr('fill','#e74c3c')
-            .attr('rx',3);
+            .attr('rx',3)
+            .on('click', e => { e.stopPropagation(); console.log('delete', d.data.username); });
           popup.append('text')
-            .attr('x', -cardWidth/2 + 10 + 30)
+            .attr('class', 'popup-delete')
+            .attr('x', -cardWidth/2 + 10 + 25)
             .attr('y', btnY + 14)
             .style('text-anchor','middle')
             .style('fill','#fff')
             .style('font-size','12px')
-            .text('Delete');
-          // Create
-          popup.append('rect')
-            .attr('x', cardWidth/2 - 70)
-            .attr('y', btnY)
-            .attr('width', 60)
-            .attr('height',20)
-            .attr('fill','#27ae60')
-            .attr('rx',3);
-          popup.append('text')
-            .attr('x', cardWidth/2 - 70 + 30)
-            .attr('y', btnY + 14)
-            .style('text-anchor','middle')
-            .style('fill','#fff')
-            .style('font-size','12px')
-            .text('Create');
+            .text('Delete')
+            .on('click', e => e.stopPropagation());
         });
       } catch (e) {
         console.error("Error loading tree:", e);
