@@ -23,8 +23,3 @@ variable "dashboard_logout_url" {
   description = "Logout URL for SPA dashboard"
   type        = string
 }
-// Login URL for SPA dashboard to embed in dashboard.html
-variable "dashboard_login_url" {
-  description = "Login URL for SPA dashboard"
-  type        = string
-}

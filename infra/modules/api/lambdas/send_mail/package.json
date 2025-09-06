@@ -1,7 +1,0 @@
-{
-  "name": "send_mail_lambda",
-  "version": "1.0.0",
-  "dependencies": {
-    "@aws-sdk/client-ses": "^3.200.0"
-  }
-}

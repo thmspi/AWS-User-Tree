@@ -138,7 +138,6 @@
         <div style="text-align:right;">
           <button type="button" id="close-modal">Close</button>
           <button type="button" id="save-user">Save</button>
-          <button type="button" id="mail-user">Mail</button>
         </div>
       </form>
     </div>
@@ -322,24 +321,24 @@
       return pwd.split('').sort(() => Math.random() - 0.5).join('');
     }
     // Main create flow
-    async function createUser(sendEmail = false) {
+  async function createUser() {
 
       document.getElementById('modal-overlay').style.display = 'none';
       document.getElementById('menu-options').style.pointerEvents = 'auto';
 
-      const form = document.getElementById('create-user-form');
+  const form = document.getElementById('create-user-form');
       const username = form.username.value.trim();
       // check username availability
-      const availRes = await fetch(apiEndpoint + '/checkavailability', {
+  const availRes = await fetch(apiEndpoint + '/checkavailability', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })
       });
       const avail = await availRes.json();
       if (!avail.available) {
-        alert('Username already taken');
+  alert('Username already taken');
         return;
       }
-      const password = generatePassword();
+  const password = generatePassword();
       const userData = {
         username,
         given_name: form.given_name.value,
@@ -363,28 +362,10 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dynoData)
         });
-        // close modal overlay
-        document.getElementById('modal-overlay').style.display = 'none';
-        // re-enable only menu options
-        document.getElementById('menu-options').style.pointerEvents = 'auto';
-        // send email via send_mail Lambda if requested
-        if (sendEmail) {
-          // include email (using username) and login URL
-          await fetch(apiEndpoint + '/send_mail', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              given_name: form.given_name.value,
-              family_name: form.family_name.value,
-              username,
-              password,
-              email: username,
-              login_url: '${login_url}'
-            })
-          });
-          alert('Credentials sent via email');
-        } else {
-          alert('User created\nUsername: ' + username + '\nPassword: ' + password);
-        }
+        // close modal
+        
+    // notify
+    alert('User created\nUsername: ' + username + '\nPassword: ' + password);
         // refresh tree
         loadTree();
       } catch (err) {
@@ -392,8 +373,7 @@
         alert('Error creating user');
       }
     }
-    document.getElementById('save-user').addEventListener('click', () => createUser(false));
-    document.getElementById('mail-user').addEventListener('click', () => createUser(true));
+  document.getElementById('save-user').addEventListener('click', () => createUser());
   </script>
   <!-- initial create-user block removed -->
   <!-- utility and main create flow -->

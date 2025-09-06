@@ -34,7 +34,6 @@ module "hosting" {
   enable_logging         = var.enable_logging
   dashboard_api_endpoint = local.api_endpoint
   dashboard_logout_url   = local.logout_url
-  dashboard_login_url    = local.login_url
 }
 
 // Instantiate Auth module (Cognito User + Identity Pools)
@@ -67,10 +66,8 @@ module "api" {
   tags       = var.tags
   table_name        = module.data.user_tree_table_name
   teams_table_name  = module.data.teams_table_name
-  aws_region        = var.aws_region
-  user_pool_id      = module.auth.user_pool_id
-  admin_username    = var.admin_username
-  login_url         = local.login_url
+    aws_region         = var.aws_region
+    user_pool_id       = module.auth.user_pool_id
 }
 
 locals {
