@@ -25,7 +25,9 @@ data "aws_iam_policy_document" "dynamo_read" {
     actions = [
       "dynamodb:GetItem",
       "dynamodb:Query",
-      "dynamodb:Scan"
+      "dynamodb:Scan",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem"
     ]
     resources = [
       "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.table_name}",
