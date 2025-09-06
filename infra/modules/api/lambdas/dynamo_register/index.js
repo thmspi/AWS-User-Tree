@@ -20,7 +20,6 @@ exports.handler = async (event) => {
     team,
     manager,
     is_manager,
-    permissions = [],
     level = 1
   } = body;
   if (!username) {
@@ -38,7 +37,6 @@ exports.handler = async (event) => {
         team,
         manager,
         is_manager,
-        permissions,
         level
       }
     }));

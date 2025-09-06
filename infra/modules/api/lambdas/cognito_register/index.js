@@ -15,7 +15,7 @@ exports.handler = async (event) => {
   } catch {
     return { statusCode: 400, body: JSON.stringify({ message: 'Invalid JSON' }) };
   }
-  const { username, given_name, family_name, password, permissions = [] } = body;
+  const { username, given_name, family_name, password } = body;
   if (!username || !password) {
     return { statusCode: 400, body: JSON.stringify({ message: 'Missing username or password' }) };
   }
@@ -32,14 +32,6 @@ exports.handler = async (event) => {
       ],
       MessageAction: 'SUPPRESS'
     }));
-    // Attach user to permission groups
-    for (const perm of permissions) {
-      await client.send(new AdminAddUserToGroupCommand({
-        UserPoolId: poolId,
-        Username: username,
-        GroupName: perm
-      }));
-    }
     return {
       statusCode: 200,
       headers: {
