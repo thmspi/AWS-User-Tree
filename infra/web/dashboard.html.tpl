@@ -122,6 +122,12 @@
       })
     );
 
+    // position slide-menu below header dynamically
+    document.addEventListener('DOMContentLoaded', () => {
+      const header = document.querySelector('header');
+      const menu = document.getElementById('slide-menu');
+      if(header && menu) menu.style.top = header.clientHeight + 'px';
+    });
     async function loadTree() {
       try {
         console.log("Fetching tree from", apiEndpoint + "/tree");
@@ -198,31 +204,35 @@
             .text(d => d);
         // on click, toggle detail popup
         node.on('click', function(event, d) {
-          const sel = d3.select(this).select('g.popup');
-          if (!sel.empty()) { sel.remove(); return; }
-          const popup = d3.select(this).append('g').attr('class','popup')
-            .attr('transform', 'translate(0,' + (-cardHeight/2 - 10) + ')');
-          // prevent closing when interacting with popup
-          popup.selectAll('*').on('click', e => e.stopPropagation());
-          // background
-          popup.append('rect')
-            .attr('x', -cardWidth/2)
-            .attr('y', - (cardHeight + 10))
-            .attr('width', cardWidth)
-            .attr('height', cardHeight + 20)
-            .attr('fill', '#333')
-            .attr('rx', 5).attr('ry',5);
-          // details lines
+          // dynamic popup size and position
           const info = [
             ((d.data.given_name||'')+' '+(d.data.family_name||'')).trim(),
             d.data.username,
             'Job: '+(d.data.job||[]).join(', '),
             'Team: '+(d.data.team||[]).join(', ')
           ];
+          const lineHeight = 18;
+          const pad = 8;
+          const popupWidth = cardWidth + pad*2;
+          const popupHeight = info.length * lineHeight + pad*2;
+          // create popup group above node
+          const popup = d3.select(this).append('g').attr('class','popup')
+            // translate up by card half + popup height + margin
+            .attr('transform', 'translate(0,' + (-(cardHeight/2) - popupHeight - 5) + ')')
+            .on('click', e => e.stopPropagation());
+          // background
+          popup.append('rect')
+            .attr('x', -popupWidth/2)
+            .attr('y', 0)
+            .attr('width', popupWidth)
+            .attr('height', popupHeight)
+            .attr('fill', '#333')
+            .attr('rx', 5).attr('ry', 5);
+          // text lines
           info.forEach((text,i) => {
             popup.append('text')
               .attr('x', 0)
-              .attr('y', -cardHeight - 10 + 20 + i*18)
+              .attr('y', pad + (i+1)*lineHeight - lineHeight/2)
               .style('text-anchor','middle')
               .style('fill','#fff')
               .style('font-size','12px')
