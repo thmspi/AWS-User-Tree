@@ -74,10 +74,14 @@
       font-size: 14px;
       cursor: pointer;
     }
-    /* outline card on hover */
-    .node rect:hover {
+    /* outline only the main card on hover */
+    .node > rect:hover {
       stroke: #f39c12;
       stroke-width: 2px;
+    }
+    /* popup delete button */
+    .popup-delete {
+      cursor: pointer;
     }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -179,14 +183,14 @@
           .attr('rx', 5)
           .attr('ry', 5);
         node.append('text')
-          .attr('dy', -cardHeight/2 + padding)
+          .attr('dy', -cardHeight/4)
           .style('text-anchor', 'middle')
           .style('font-size', '14px')
           .style('fill', '#fff')
           .text(d => ((d.data.given_name||'') + ' ' + (d.data.family_name||'')).trim());
         // show only name and job
         node.append('text')
-          .attr('dy', -cardHeight/2 + padding + 12)
+          .attr('dy', cardHeight/4)
           .style('text-anchor', 'middle')
           .style('font-size', '12px')
           .style('fill', '#fff')
@@ -197,6 +201,8 @@
           if (!sel.empty()) { sel.remove(); return; }
           const popup = d3.select(this).append('g').attr('class','popup')
             .attr('transform', 'translate(0,' + (-cardHeight/2 - 10) + ')');
+          // prevent closing when interacting with popup
+          popup.selectAll('*').on('click', e => e.stopPropagation());
           // background
           popup.append('rect')
             .attr('x', -cardWidth/2)
@@ -221,24 +227,24 @@
               .style('font-size','12px')
               .text(text);
           });
-          // action button: Delete only
+          // Delete button
           const btnY = 0;
-          const delRect = popup.append('rect')
-            .attr('class', 'popup-delete')
-            .attr('x', -cardWidth/2 + 10)
+          const delW = 40;
+          const delX = -cardWidth/2 + padding;
+          popup.append('rect')
+            .attr('x', delX)
             .attr('y', btnY)
-            .attr('width', 50)
-            .attr('height',20)
-            .attr('fill','#e74c3c')
-            .attr('rx',3)
+            .attr('width', delW)
+            .attr('height', 20)
+            .attr('fill', '#e74c3c')
+            .attr('rx', 3)
             .on('click', e => { e.stopPropagation(); console.log('delete', d.data.username); });
           popup.append('text')
-            .attr('class', 'popup-delete')
-            .attr('x', -cardWidth/2 + 10 + 25)
+            .attr('x', delX + delW/2)
             .attr('y', btnY + 14)
-            .style('text-anchor','middle')
-            .style('fill','#fff')
-            .style('font-size','12px')
+            .style('text-anchor', 'middle')
+            .style('fill', '#fff')
+            .style('font-size', '12px')
             .text('Delete')
             .on('click', e => e.stopPropagation());
         });
