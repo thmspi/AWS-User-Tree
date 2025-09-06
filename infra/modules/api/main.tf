@@ -26,8 +26,9 @@ data "aws_iam_policy_document" "dynamo_read" {
       "dynamodb:GetItem",
       "dynamodb:Query",
       "dynamodb:Scan",
-      "dynamodb:PutItem",
-      "dynamodb:UpdateItem"
+  "dynamodb:PutItem",
+  "dynamodb:UpdateItem",
+  "dynamodb:DeleteItem"
     ]
     resources = [
       "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.table_name}",
@@ -182,6 +183,24 @@ resource "aws_lambda_function" "dynamo_register" {
   }
   depends_on = [archive_file.dynamo_register_zip]
 }
+// Package and deploy manage_team Lambda
+resource "archive_file" "manage_team_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/manage_team"
+  output_path = "${path.module}/manage_team.zip"
+}
+resource "aws_lambda_function" "manage_team" {
+  filename         = archive_file.manage_team_zip.output_path
+  source_code_hash = archive_file.manage_team_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-${var.stack_id}-manage-team"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = { TEAMS_TABLE = var.teams_table_name }
+  }
+  depends_on = [archive_file.manage_team_zip]
+}
 // Attach basic execution policy so Lambda can emit logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
   role       = aws_iam_role.lambda_exec.name
@@ -279,6 +298,25 @@ resource "aws_apigatewayv2_route" "get_managers" {
   route_key = "GET /managers"
   target    = "integrations/${aws_apigatewayv2_integration.fetch_manager.id}"
 }
+// Integration for manage_team (create/delete teams)
+resource "aws_apigatewayv2_integration" "manage_team" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.manage_team.invoke_arn
+  payload_format_version = "2.0"
+}
+// Route for creating a team
+resource "aws_apigatewayv2_route" "post_teams" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "POST /teams"
+  target    = "integrations/${aws_apigatewayv2_integration.manage_team.id}"
+}
+// Route for deleting a team
+resource "aws_apigatewayv2_route" "delete_team" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "DELETE /teams/{team_id}"
+  target    = "integrations/${aws_apigatewayv2_integration.manage_team.id}"
+}
 
 // Deploy stage
 resource "aws_apigatewayv2_stage" "default" {
@@ -324,6 +362,14 @@ resource "aws_lambda_permission" "cognito_register" {
   statement_id  = "AllowCognitoRegisterInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.cognito_register.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for manage_team
+resource "aws_lambda_permission" "manage_team" {
+  statement_id  = "AllowManageTeamInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.manage_team.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }

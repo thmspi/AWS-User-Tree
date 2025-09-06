@@ -1,4 +1,4 @@
-// Lambda to fetch all team IDs from DynamoDB teams table
+// Lambda to fetch all teams with names and colors from DynamoDB teams table
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
@@ -16,7 +16,7 @@ exports.handler = async () => {
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
 
-    const teams = items.map(item => item.team_id);
+    const teams = items.map(item => ({ name: item.team_id, color: item.color || '#0073bb' }));
     return {
       statusCode: 200,
       headers: {
