@@ -493,6 +493,10 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.style.display = 'flex';
   });
 });
+// Close Manage Teams modal
+document.getElementById('close-team-modal').addEventListener('click', () => {
+  document.getElementById('team-modal-overlay').style.display = 'none';
+});
   </script>
   <script>
 // Delete User popup
