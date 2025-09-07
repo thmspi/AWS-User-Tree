@@ -35,7 +35,7 @@ exports.handler = async (event) => {
       return { statusCode: 403, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
     }
     // collect managers under currentUser
-    const managers = [];
+    let managers = [];
     function traverse(user) {
       const node = treeMap[user];
       if (!node || !node.children) return;

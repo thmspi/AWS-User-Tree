@@ -168,8 +168,20 @@
     </div>
   </div>
   <script>
-  const apiEndpoint = "${api_endpoint}";
-  let currentUser;
+    const apiEndpoint = "${api_endpoint}";
+    // determine current user from Cognito id_token in URL hash
+    let currentUser = null;
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const idToken = params.get('id_token');
+    if (idToken) {
+      try {
+        const payload = JSON.parse(atob(idToken.split('.')[1]));
+        currentUser = payload['cognito:username'];
+      } catch {
+        currentUser = null;
+      }
+    }
     const container = document.getElementById("tree-container");
     // calculate dimensions after layout
     const { width, height } = container.getBoundingClientRect();
