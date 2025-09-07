@@ -464,42 +464,24 @@
     }
   </script>
   <script>
-    // Manage Teams popup
-document.getElementById('create-group').textContent = 'Manage Teams';
-document.getElementById('create-group').addEventListener('click', async () => {
-  const overlay = document.getElementById('team-modal-overlay');
-  const listEl = document.getElementById('team-list'); listEl.innerHTML = '';
-  try {
-    const teams = await fetch(apiEndpoint + '/teams').then(r => r.json());
-    teams.forEach(t => {
-      const li = document.createElement('li');
-      const color = t.color || '#0073bb';
-    li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${color};margin-right:8px;"></span>$${t.name}` +
-             ` <button data-name="$${t.name}" class="remove-team">-</button>`;
-      listEl.appendChild(li);
-    });
-  } catch(e) { console.error(e); }
-  overlay.style.display = 'flex';
-});
-document.getElementById('close-team-modal').addEventListener('click', () => {
-  document.getElementById('team-modal-overlay').style.display = 'none';
-});
-document.getElementById('add-team-btn').addEventListener('click', async () => {
-  const name = document.getElementById('new-team-name').value.trim();
-  const color = document.getElementById('new-team-color').value;
-  if (!name) return;
-  try { await fetch(apiEndpoint + '/teams', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,color})}); }
-  catch(e){console.error(e);}  
-  document.getElementById('create-group').click();
-});
-// delegate remove
-document.getElementById('team-list').addEventListener('click', async e => {
-  if e.target.classList.contains('remove-team')) {
-    const name = e.target.dataset.name;
-    try { await fetch(apiEndpoint + '/teams/' + encodeURIComponent(name), {method:'DELETE'}); }
-    catch(e){console.error(e);}  
-    document.getElementById('create-group').click();
-  }
+    // Manage Teams popup handler
+document.addEventListener('DOMContentLoaded', () => {
+  const createGroupBtn = document.getElementById('create-group');
+  createGroupBtn.addEventListener('click', async () => {
+    const overlay = document.getElementById('team-modal-overlay');
+    const listEl = document.getElementById('team-list'); listEl.innerHTML = '';
+    try {
+      const teams = await fetch(apiEndpoint + '/teams').then(r => r.json());
+      teams.forEach(t => {
+        const li = document.createElement('li');
+        const color = t.color || '#0073bb';
+        li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:${color};margin-right:8px;"></span>${t.name}` +
+                       ` <button data-name="${t.name}" class="remove-team">-</button>`;
+        listEl.appendChild(li);
+      });
+    } catch(e) { console.error(e); }
+    overlay.style.display = 'flex';
+  });
 });
   </script>
   <script>
@@ -510,9 +492,25 @@ document.getElementById('delete-user').addEventListener('click', async () => {
   // fetch all users
   try {
     const data = await fetch(apiEndpoint + '/tree').then(r => r.json());
-    // flatten tree
-    function flatten(node, arr=[]) { node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
-    const users = flatten(data);
+    // find current user node in tree
+    function findNode(node, name) {
+      if (node.username === name) return node;
+      for (const c of node.children || []) {
+        const found = findNode(c, name);
+        if (found) return found;
+      }
+      return null;
+    }
+    const currentNode = findNode(data, currentUser);
+    // flatten descendants excluding self
+    function flatten(node, arr=[]) {
+      for (const c of node.children || []) {
+        arr.push(c.username);
+        flatten(c, arr);
+      }
+      return arr;
+    }
+    const users = currentNode ? flatten(currentNode) : [];
     deleteSelect.innerHTML = '';
     users.forEach(u => {
       const opt = document.createElement('option'); opt.value = u; opt.textContent = u;
