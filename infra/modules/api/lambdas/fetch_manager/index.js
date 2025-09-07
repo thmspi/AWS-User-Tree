@@ -5,7 +5,7 @@ const { DynamoDBDocumentClient, ScanCommand } = require('@aws-sdk/lib-dynamodb')
 const ddbClient = new DynamoDBClient({});
 const client = DynamoDBDocumentClient.from(ddbClient);
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   const tableName = process.env.USER_TABLE;
   try {
     let items = [];
@@ -16,8 +16,20 @@ exports.handler = async () => {
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
 
-    // determine current user filter (from query param)
+    // determine current user (from query param)
     const currentUser = event.queryStringParameters?.user;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': 'GET,OPTIONS'
+    };
+    // only managers can fetch subordinate managers
+    const rootNode = treeMap[currentUser];
+    if (!rootNode || !rootNode.is_manager) {
+      return { statusCode: 403, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
+    }
+
     // build map username->item
     const treeMap = {};
     items.forEach(i => {
@@ -34,23 +46,13 @@ exports.handler = async () => {
         traverse(child);
       });
     }
-    if (currentUser && treeMap[currentUser]) {
-      // include self if manager
-      if (treeMap[currentUser].is_manager) managers.push(currentUser);
-      traverse(currentUser);
-    } else {
-      // no filter: include all managers
-      items.forEach(item => { if (item.is_manager) managers.push(item.username); });
-    }
+    // include self and descendant managers
+    managers.push(currentUser);
+    traverse(currentUser);
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
-        'Access-Control-Allow-Methods': 'GET,OPTIONS'
-      },
+      headers,
       body: JSON.stringify(managers)
     };
   } catch (err) {
