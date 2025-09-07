@@ -515,16 +515,29 @@ document.getElementById('team-list').addEventListener('click', async e => {
 });
   </script>
   <script>
-// Delete User popup
+// Delete User popup (scope to currentUser subtree)
 const deleteOverlay = document.getElementById('delete-modal-overlay');
 const deleteSelect = document.getElementById('delete-user-select');
+// utility to find node by username in tree
+function findNode(node, username) {
+  if (node.username === username) return node;
+  if (node.children) {
+    for (const child of node.children) {
+      const found = findNode(child, username);
+      if (found) return found;
+    }
+  }
+  return null;
+}
 document.getElementById('delete-user').addEventListener('click', async () => {
   // fetch all users
   try {
     const data = await fetch(apiEndpoint + '/tree').then(r => r.json());
-    // flatten tree
-    function flatten(node, arr=[]) { node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
-    const users = flatten(data);
+    // find current user's subtree
+    const subtree = findNode(data, currentUser);
+    // flatten descendants (exclude currentUser)
+    function flatten(node, arr = []) { if (node.children) node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
+    const users = subtree ? flatten(subtree) : [];
     deleteSelect.innerHTML = '';
     users.forEach(u => {
       const opt = document.createElement('option'); opt.value = u; opt.textContent = u;
