@@ -169,7 +169,17 @@
   </div>
   <script>
   const apiEndpoint = "${api_endpoint}";
-  let currentUser;
+  // parse JWT from URL hash to identify current user
+  function parseJwt(token) {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    return JSON.parse(jsonPayload);
+  }
+  const hashParams = new URLSearchParams(window.location.hash.substr(1));
+  const idToken = hashParams.get('id_token');
+  const currentUser = idToken ? parseJwt(idToken)['cognito:username'] : null;
+
     const container = document.getElementById("tree-container");
     // calculate dimensions after layout
     const { width, height } = container.getBoundingClientRect();
@@ -211,7 +221,7 @@
         const teamsList = await teamsRes.json();
         const teamColorMap = {};
         teamsList.forEach(t => { teamColorMap[t.name] = t.color; });
-        currentUser = data.username;
+        // do not override currentUser; parseJwt used
         const root = d3.hierarchy(data);
         // if the current user is a manager, display creation menu
         if (data.is_manager) {
