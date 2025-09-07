@@ -169,6 +169,7 @@
   </div>
   <script>
   const apiEndpoint = "${api_endpoint}";
+  let currentUser;
     const container = document.getElementById("tree-container");
     // calculate dimensions after layout
     const { width, height } = container.getBoundingClientRect();
@@ -210,6 +211,7 @@
         const teamsList = await teamsRes.json();
         const teamColorMap = {};
         teamsList.forEach(t => { teamColorMap[t.name] = t.color; });
+        currentUser = data.username;
         const root = d3.hierarchy(data);
         // if the current user is a manager, display creation menu
         if (data.is_manager) {
@@ -425,7 +427,7 @@
          try {
            const [teamsRes, managersRes] = await Promise.all([
              fetch(apiEndpoint + '/teams'),
-             fetch(apiEndpoint + '/managers')
+             fetch(apiEndpoint + '/managers?user=' + encodeURIComponent(currentUser))
            ]);
            const teams = await teamsRes.json();
            const managers = await managersRes.json();
@@ -509,7 +511,7 @@ document.getElementById('delete-user').addEventListener('click', async () => {
   try {
     const data = await fetch(apiEndpoint + '/tree').then(r => r.json());
     // flatten tree
-    function flatten(node, arr=[]) { arr.push(node.username); node.children.forEach(c => flatten(c, arr)); return arr; }
+    function flatten(node, arr=[]) { node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
     const users = flatten(data);
     deleteSelect.innerHTML = '';
     users.forEach(u => {

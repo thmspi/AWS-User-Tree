@@ -16,10 +16,32 @@ exports.handler = async () => {
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
 
-    // filter managers
-    const managers = items
-      .filter(item => item.is_manager)
-      .map(item => item.username);
+    // determine current user filter (from query param)
+    const currentUser = event.queryStringParameters?.user;
+    // build map username->item
+    const treeMap = {};
+    items.forEach(i => {
+      treeMap[i.username] = { ...i, children: i.children || [] };
+    });
+    // collect managers under currentUser
+    const managers = [];
+    function traverse(user) {
+      const node = treeMap[user];
+      if (!node || !node.children) return;
+      node.children.forEach(child => {
+        const childNode = treeMap[child];
+        if (childNode?.is_manager) managers.push(child);
+        traverse(child);
+      });
+    }
+    if (currentUser && treeMap[currentUser]) {
+      // include self if manager
+      if (treeMap[currentUser].is_manager) managers.push(currentUser);
+      traverse(currentUser);
+    } else {
+      // no filter: include all managers
+      items.forEach(item => { if (item.is_manager) managers.push(item.username); });
+    }
 
     return {
       statusCode: 200,

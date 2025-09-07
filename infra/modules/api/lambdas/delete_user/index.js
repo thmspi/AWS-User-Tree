@@ -21,15 +21,42 @@ exports.handler = async (event) => {
   try {
     const parts = event.rawPath.split('/');
     const username = decodeURIComponent(parts[parts.length - 1]);
-    if (!username) return { statusCode:400, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ message: 'Missing username' }) };
+    if (!username) return {
+      statusCode: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+      },
+      body: JSON.stringify({ message: 'Missing username' })
+    };
     // fetch user's manager and children
     const scan = await docClient.send(new ScanCommand({ TableName: table }));
     const items = scan.Items;
     const user = items.find(i => i.username === username);
-    if (!user) return { statusCode:404, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ message: 'User not found' }) };
+    if (!user) return {
+      statusCode: 404,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+      },
+      body: JSON.stringify({ message: 'User not found' })
+    };
     // block deleting root user (no parent)
     if (!user.manager) {
-      return { statusCode:403, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ message: 'Cannot delete root user' }) };
+      return {
+        statusCode: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+        },
+        body: JSON.stringify({ message: 'Cannot delete root user' })
+      };
     }
     const parent = user.manager;
     const children = user.children || [];
@@ -53,9 +80,27 @@ exports.handler = async (event) => {
     }
     // delete user from DynamoDB
     await docClient.send(new DeleteCommand({ TableName: table, Key: { username } }));
-    return { statusCode:200, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ message: 'User deleted' }) };
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+      },
+      body: JSON.stringify({ message: 'User deleted' })
+    };
   } catch (err) {
     console.error('Error deleting user:', err);
-    return { statusCode:500, headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify({ message: err.message }) };
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+      },
+      body: JSON.stringify({ message: err.message })
+    };
   }
 };
