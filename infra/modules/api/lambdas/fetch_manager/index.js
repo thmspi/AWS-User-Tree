@@ -16,26 +16,15 @@ exports.handler = async (event) => {
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
 
+    // determine current user filter (from query param)
+    const currentUser = event.queryStringParameters?.user;
     // build map username->item
     const treeMap = {};
     items.forEach(i => {
       treeMap[i.username] = { ...i, children: i.children || [] };
     });
-    // determine current user (from query param)
-    const currentUser = event.queryStringParameters?.user;
-    const headers = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': '*',
-      'Access-Control-Allow-Methods': 'GET,OPTIONS'
-    };
-    // only managers can fetch subordinate managers
-    const rootNode = treeMap[currentUser];
-    if (!rootNode || !rootNode.is_manager) {
-      return { statusCode: 403, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
-    }
     // collect managers under currentUser
-    let managers = [];
+    const managers = [];
     function traverse(user) {
       const node = treeMap[user];
       if (!node || !node.children) return;
@@ -45,13 +34,23 @@ exports.handler = async (event) => {
         traverse(child);
       });
     }
-    // include self and descendant managers
-    managers.push(currentUser);
-    traverse(currentUser);
+    if (currentUser && treeMap[currentUser]) {
+      // include self if manager
+      if (treeMap[currentUser].is_manager) managers.push(currentUser);
+      traverse(currentUser);
+    } else {
+      // no filter: include all managers
+      items.forEach(item => { if (item.is_manager) managers.push(item.username); });
+    }
 
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS'
+      },
       body: JSON.stringify(managers)
     };
   } catch (err) {

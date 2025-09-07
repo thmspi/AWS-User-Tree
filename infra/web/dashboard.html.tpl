@@ -168,20 +168,8 @@
     </div>
   </div>
   <script>
-    const apiEndpoint = "${api_endpoint}";
-    // determine current user from Cognito id_token in URL hash
-    let currentUser = null;
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const idToken = params.get('id_token');
-    if (idToken) {
-      try {
-        const payload = JSON.parse(atob(idToken.split('.')[1]));
-        currentUser = payload['cognito:username'];
-      } catch {
-        currentUser = null;
-      }
-    }
+  const apiEndpoint = "${api_endpoint}";
+  let currentUser;
     const container = document.getElementById("tree-container");
     // calculate dimensions after layout
     const { width, height } = container.getBoundingClientRect();
@@ -515,29 +503,16 @@ document.getElementById('team-list').addEventListener('click', async e => {
 });
   </script>
   <script>
-// Delete User popup (scope to currentUser subtree)
+// Delete User popup
 const deleteOverlay = document.getElementById('delete-modal-overlay');
 const deleteSelect = document.getElementById('delete-user-select');
-// utility to find node by username in tree
-function findNode(node, username) {
-  if (node.username === username) return node;
-  if (node.children) {
-    for (const child of node.children) {
-      const found = findNode(child, username);
-      if (found) return found;
-    }
-  }
-  return null;
-}
 document.getElementById('delete-user').addEventListener('click', async () => {
   // fetch all users
   try {
     const data = await fetch(apiEndpoint + '/tree').then(r => r.json());
-    // find current user's subtree
-    const subtree = findNode(data, currentUser);
-    // flatten descendants (exclude currentUser)
-    function flatten(node, arr = []) { if (node.children) node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
-    const users = subtree ? flatten(subtree) : [];
+    // flatten tree
+    function flatten(node, arr=[]) { node.children.forEach(c => { arr.push(c.username); flatten(c, arr); }); return arr; }
+    const users = flatten(data);
     deleteSelect.innerHTML = '';
     users.forEach(u => {
       const opt = document.createElement('option'); opt.value = u; opt.textContent = u;
