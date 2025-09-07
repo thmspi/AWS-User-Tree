@@ -99,7 +99,8 @@
     <button id="menu-toggle">&#x25C0;</button>
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
-      <button id="create-group">Create a group</button>
+      <button id="create-group">Manage Teams</button>
+      <button id="delete-user">Delete User</button>
     </div>
   </div>
   <!-- Create User Modal -->
@@ -153,6 +154,17 @@
         <button type="button" id="add-team-btn">Add</button>
       </div>
       <button type="button" id="close-team-modal" style="position:absolute; top:10px; right:10px;">✕</button>
+    </div>
+  </div>
+  <!-- Delete User Modal -->
+  <div id="delete-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:2147483648;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:320px; box-shadow:0 2px 8px rgba(0,0,0,0.26); position:relative;">
+      <h2>Delete User</h2>
+      <select id="delete-user-select" style="width:100%; margin-bottom:10px;"></select>
+      <div style="text-align:right;">
+        <button id="cancel-delete">Cancel</button>
+        <button id="confirm-delete">Delete</button>
+      </div>
     </div>
   </div>
   <script>
@@ -480,12 +492,45 @@ document.getElementById('add-team-btn').addEventListener('click', async () => {
 });
 // delegate remove
 document.getElementById('team-list').addEventListener('click', async e => {
-  if (e.target.classList.contains('remove-team')) {
+  if e.target.classList.contains('remove-team')) {
     const name = e.target.dataset.name;
     try { await fetch(apiEndpoint + '/teams/' + encodeURIComponent(name), {method:'DELETE'}); }
     catch(e){console.error(e);}  
     document.getElementById('create-group').click();
   }
+});
+  </script>
+  <script>
+// Delete User popup
+const deleteOverlay = document.getElementById('delete-modal-overlay');
+const deleteSelect = document.getElementById('delete-user-select');
+document.getElementById('delete-user').addEventListener('click', async () => {
+  // fetch all users
+  try {
+    const data = await fetch(apiEndpoint + '/tree').then(r => r.json());
+    // flatten tree
+    function flatten(node, arr=[]) { arr.push(node.username); node.children.forEach(c => flatten(c, arr)); return arr; }
+    const users = flatten(data);
+    deleteSelect.innerHTML = '';
+    users.forEach(u => {
+      const opt = document.createElement('option'); opt.value = u; opt.textContent = u;
+      deleteSelect.appendChild(opt);
+    });
+    deleteOverlay.style.display = 'flex';
+  } catch(e) { console.error(e); }
+});
+// Cancel
+document.getElementById('cancel-delete').addEventListener('click', () => {
+  deleteOverlay.style.display = 'none';
+});
+// Confirm delete
+document.getElementById('confirm-delete').addEventListener('click', async () => {
+  const user = deleteSelect.value;
+  deleteOverlay.style.display = 'none';
+  try {
+    await fetch(apiEndpoint + '/users/' + encodeURIComponent(user), { method: 'DELETE' });
+    loadTree();
+  } catch(e) { console.error(e); alert('Error deleting user'); }
 });
   </script>
 </body>

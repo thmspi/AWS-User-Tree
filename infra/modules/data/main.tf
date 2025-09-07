@@ -43,7 +43,8 @@ resource "aws_dynamodb_table_item" "admin" {
   permissions  = { L    = [] }
   // mark this user explicitly as a manager
   is_manager   = { BOOL = true }
-  # manager attribute removed; children list handles hierarchy
+  # explicit manager field for root (no parent)
+  manager      = { S    = "" }
   })
   depends_on = [aws_dynamodb_table.user_tree]
   lifecycle {
