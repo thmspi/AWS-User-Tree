@@ -59,6 +59,17 @@ exports.handler = async (event) => {
       };
     }
     const parent = user.manager;
+    // remove user from parent's children list
+    const parentItem = items.find(i => i.username === parent);
+    const originalChildren = parentItem?.children || [];
+    const updatedChildren = originalChildren.filter(child => child !== username);
+    // update parent children to remove this user
+    await docClient.send(new UpdateCommand({
+      TableName: table,
+      Key: { username: parent },
+      UpdateExpression: 'SET children = :children',
+      ExpressionAttributeValues: { ':children': updatedChildren }
+    }));
     const children = user.children || [];
     // delete from Cognito
     await cognito.send(new AdminDeleteUserCommand({ UserPoolId: poolId, Username: username }));
