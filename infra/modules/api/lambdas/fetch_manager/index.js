@@ -16,6 +16,11 @@ exports.handler = async (event) => {
       params.ExclusiveStartKey = data.LastEvaluatedKey;
     } while (params.ExclusiveStartKey);
 
+    // build map username->item
+    const treeMap = {};
+    items.forEach(i => {
+      treeMap[i.username] = { ...i, children: i.children || [] };
+    });
     // determine current user (from query param)
     const currentUser = event.queryStringParameters?.user;
     const headers = {
@@ -29,12 +34,6 @@ exports.handler = async (event) => {
     if (!rootNode || !rootNode.is_manager) {
       return { statusCode: 403, headers, body: JSON.stringify({ message: 'Unauthorized' }) };
     }
-
-    // build map username->item
-    const treeMap = {};
-    items.forEach(i => {
-      treeMap[i.username] = { ...i, children: i.children || [] };
-    });
     // collect managers under currentUser
     const managers = [];
     function traverse(user) {
