@@ -49,7 +49,8 @@ data "aws_iam_policy_document" "cognito_access" {
     actions = [
       "cognito-idp:AdminGetUser",
       "cognito-idp:AdminCreateUser",
-      "cognito-idp:AdminAddUserToGroup"
+      "cognito-idp:AdminAddUserToGroup",
+      "cognito-idp:AdminDeleteUser"
     ]
     resources = [
       "arn:aws:cognito-idp:${var.aws_region}:${data.aws_caller_identity.current.account_id}:userpool/${var.user_pool_id}"
