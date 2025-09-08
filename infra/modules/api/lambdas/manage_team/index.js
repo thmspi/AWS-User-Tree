@@ -6,9 +6,19 @@ const ddbClient = new DynamoDBClient({});
 const client = DynamoDBDocumentClient.from(ddbClient);
 
 exports.handler = async (event) => {
+  const method = event.requestContext?.http.method;
+  if (method === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'POST,DELETE,OPTIONS'
+      }
+    };
+  }
   const tableName = process.env.TEAMS_TABLE;
   try {
-    const method = event.requestContext.http.method;
     if (method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       const { name, color } = body;

@@ -35,15 +35,39 @@ exports.handler = async (event) => {
     await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerA}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentB}}));
     await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerB}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentA}}));
     // update parents' children lists
-    // remove A from parentA and add B, vice versa
-    async function swapChild(parent, oldChild, newChild){
-      const parentItem = items.find(i=>i.username===parent);
+    if (parentA && parentB && parentA === parentB) {
+      // both managers under same parent: swap positions in children array
+      const parent = parentA;
+      const parentItem = items.find(i => i.username === parent);
       const children = parentItem.children || [];
-      const updated = children.filter(c=>c!==oldChild).concat(newChild);
-      await doc.send(new UpdateCommand({TableName:table,Key:{username:parent},UpdateExpression:'SET children=:c',ExpressionAttributeValues:{':c':updated}}));
+      const newChildren = children.map(c => {
+        if (c === managerA) return managerB;
+        if (c === managerB) return managerA;
+        return c;
+      });
+      await doc.send(new UpdateCommand({
+        TableName: table,
+        Key: { username: parent },
+        UpdateExpression: 'SET children = :c',
+        ExpressionAttributeValues: { ':c': newChildren }
+      }));
+    } else {
+      // distinct parents: remove and add accordingly
+      async function updateChildList(parent, removeId, addId) {
+        const parentItem = items.find(i => i.username === parent);
+        const children = parentItem.children || [];
+        const filtered = children.filter(c => c !== removeId);
+        filtered.push(addId);
+        await doc.send(new UpdateCommand({
+          TableName: table,
+          Key: { username: parent },
+          UpdateExpression: 'SET children = :c',
+          ExpressionAttributeValues: { ':c': filtered }
+        }));
+      }
+      if (parentA) await updateChildList(parentA, managerA, managerB);
+      if (parentB) await updateChildList(parentB, managerB, managerA);
     }
-    if (parentA) await swapChild(parentA, managerA, managerB);
-    if (parentB) await swapChild(parentB, managerB, managerA);
     return {
       statusCode: 200,
       headers: {
