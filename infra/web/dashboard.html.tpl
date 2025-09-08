@@ -10,9 +10,10 @@
   svg .link { stroke: rgb(255,180,241); }
     :root {
       --color-text: #ccc6c6;
-  --color-manager: #ef26c6;
-  --color-employee: #a90888;
-  --color-secondary: var(--color-employee);
+      --color-main: rgb(255 180 241);
+      --color-manager: #db42bcff;
+      --color-employee: #850a6dff;
+      --color-secondary: var(--color-employee);
       --color-black-main: rgb(10 10 10);
       --color-black-secondary: rgb(29 29 29);
     }
