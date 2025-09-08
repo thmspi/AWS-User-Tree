@@ -47,21 +47,23 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 60px; /* below header */
+  top: 50%; /* center vertically next to toggle */
+  transform: translateY(-50%);
       right: 0;
       width: 0; /* closed */
       height: auto;
       pointer-events: auto;
       z-index: 2147483647;
-      background: var(--color-black-secondary);
-      border-radius: 8px 0 0 8px;
+  background: var(--color-black-secondary);
+  border: 2px solid var(--color-main);
+  border-radius: 8px 0 0 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: stretch;
     }
     #slide-menu.open {
-      width: auto; /* size to content */
+  width: auto; /* size to content */
       transition: width 0.3s ease;
     }
     #menu-toggle {
@@ -139,7 +141,7 @@
 <body>
   <header>
     <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
-      <img src="tree.svg" alt="My Org Tree" style="height:32px;" />
+      <img src="/static/tree.svg" alt="My Org Tree" style="height:32px;" />
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">

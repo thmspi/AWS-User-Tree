@@ -108,6 +108,15 @@ resource "aws_s3_object" "dashboard_html" {
   cache_control = "max-age=31536000"
 }
 
+# Upload logo SVG for SPA
+resource "aws_s3_object" "tree_svg" {
+  bucket        = aws_s3_bucket.spa.bucket
+  key           = "static/tree.svg"
+  source        = "${path.module}/../../web/tree.svg"
+  content_type  = "image/svg+xml"
+  cache_control = "max-age=31536000"
+}
+
 
 output "spa_bucket_name" {
   value = aws_s3_bucket.spa.bucket
