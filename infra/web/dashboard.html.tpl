@@ -138,7 +138,7 @@
       outline: 2px solid var(--color-main);
     }
     /* logout link styling */
-    #controls a.logout {
+    #logout {
       margin-left: 0.5em;
       padding: 0.5em 1em;
       background-color: red;
@@ -147,7 +147,7 @@
       text-decoration: none;
       transition: background-color 0.2s ease;
     }
-    #controls a.logout:hover {
+    #logout:hover {
       background-color: darkred;
     }
     button:focus, input:focus, select:focus, textarea:focus {
@@ -163,7 +163,7 @@
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">
-      <a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a>
+      <a href="${logout_url}" id="logout" style="color:#fff; text-decoration:none;">Logout</a>
     </div>
   </header>
   <div id="tree-container"></div>
