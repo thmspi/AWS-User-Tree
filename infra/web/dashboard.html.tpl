@@ -1,3 +1,5 @@
+            li2.innerHTML = `<span style="width:12px;height:12px;display:inline-block;background:$${t.color};margin-right:8px;"></span>$${t.name}` +
+              ` <button data-name="$${t.name}" class="remove-team">-</button>`;
 <!DOCTYPE html>
 <html lang="en">
 <head>
