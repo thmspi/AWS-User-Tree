@@ -35,68 +35,45 @@ exports.handler = async (event) => {
       }
       return false;
     }
-    // scan entire table
-    // find nodes
-    const nodeA = items.find(i=>i.username === managerA);
-    const nodeB = items.find(i=>i.username === managerB);
-    if (!nodeA || !nodeB) return { statusCode:404, body: 'Manager not found' };
-    // 1) swap manager references
-    const parentA = nodeA.manager;
+  // locate nodes and prepare temp variables
+  const nodeA = items.find(i => i.username === managerA) || {};
+  const nodeB = items.find(i => i.username === managerB) || {};
+  const parentA = nodeA.manager;
     const parentB = nodeB.manager;
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerA },
-      UpdateExpression: 'SET manager = :p',
-      ExpressionAttributeValues: { ':p': parentB }
-    }));
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerB },
-      UpdateExpression: 'SET manager = :p',
-      ExpressionAttributeValues: { ':p': parentA }
-    }));
-    // 2) update parentA children: replace managerA with managerB
-    if (parentA) {
-      const paChildren = items.find(i => i.username === parentA).children || [];
-      const updatedA = paChildren.filter(c => c !== managerA).concat(managerB);
-      await doc.send(new UpdateCommand({
-        TableName: table,
-        Key: { username: parentA },
-        UpdateExpression: 'SET children = :c',
-        ExpressionAttributeValues: { ':c': updatedA }
-      }));
-    }
-    // 3) update parentB children: replace managerB with managerA
-    if (parentB) {
-      const pbChildren = items.find(i => i.username === parentB).children || [];
-      const updatedB = pbChildren.filter(c => c !== managerB).concat(managerA);
-      await doc.send(new UpdateCommand({
-        TableName: table,
-        Key: { username: parentB },
-        UpdateExpression: 'SET children = :c',
-        ExpressionAttributeValues: { ':c': updatedB }
-      }));
-    }
-    // 4) swap children lists based on relationship
     const childrenA = nodeA.children || [];
     const childrenB = nodeB.children || [];
-    if (parentB === managerA) {
-      // direct parent-child: A was parent of B
-      const newAChildren = childrenB.concat(managerA);
-      const newBChildren = childrenA.filter(c => c !== managerB);
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
-    } else if (parentA === managerB) {
-      // symmetric: B was parent of A
-      const newBChildren = childrenA.concat(managerB);
-      const newAChildren = childrenB.filter(c => c !== managerA);
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
-    } else {
-      // normal case: swap lists
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenB } }));
-      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenA } }));
+    // compute new parent children lists
+    let newPaChildren = parentA ? (items.find(i => i.username === parentA).children || []) : [];
+    let newPbChildren = parentB ? (items.find(i => i.username === parentB).children || []) : [];
+    if (parentA) {
+      newPaChildren = newPaChildren.filter(c => c !== managerA).concat(managerB);
     }
+    if (parentB) {
+      newPbChildren = newPbChildren.filter(c => c !== managerB).concat(managerA);
+    }
+    // compute new children lists for managers
+    let newAChildren = [];
+    let newBChildren = [];
+    if (parentB === managerA) {
+      // case: A was parent of B
+      newAChildren = childrenB.concat(managerA);
+      newBChildren = childrenA.filter(c => c !== managerB);
+    } else if (parentA === managerB) {
+      // case: B was parent of A
+      newBChildren = childrenA.concat(managerB);
+      newAChildren = childrenB.filter(c => c !== managerA);
+    } else {
+      // normal swap
+      newAChildren = childrenB;
+      newBChildren = childrenA;
+    }
+    // Apply updates: swap managers, update parent children, update manager children
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET manager = :p', ExpressionAttributeValues: { ':p': parentB } }));
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET manager = :p', ExpressionAttributeValues: { ':p': parentA } }));
+    if (parentA) await doc.send(new UpdateCommand({ TableName: table, Key: { username: parentA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newPaChildren } }));
+    if (parentB) await doc.send(new UpdateCommand({ TableName: table, Key: { username: parentB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newPbChildren } }));
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
+  await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
     // final response
     return {
       statusCode: 200,
