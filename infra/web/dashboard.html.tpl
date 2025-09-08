@@ -504,18 +504,29 @@ document.addEventListener('DOMContentLoaded', () => {
       teams.forEach(t => {
         const li = document.createElement('li');
         const color = t.color || '#0073bb';
-  li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${color};margin-right:8px;"></span>$${t.name}` +
-           ` <button data-name="$${t.name}" class="remove-team">-</button>`;
+  li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:${color};margin-right:8px;"></span>${t.name}` +
+           ` <button data-name="${t.name}" class="remove-team">-</button>`;
         listEl.appendChild(li);
       });
-    } catch(e) { console.error(e); }
-    overlay.style.display = 'flex';
-  });
-});
-// Close Manage Teams modal
-document.getElementById('close-team-modal').addEventListener('click', () => {
-  document.getElementById('team-modal-overlay').style.display = 'none';
-});
++        // bind Add button
++        document.getElementById('add-team-btn').onclick = async () => {
++          const name = document.getElementById('new-team-name').value.trim();
++          const colorVal = document.getElementById('new-team-color').value;
++          if (!name) return alert('Enter team name');
++          await fetch(apiEndpoint + '/teams', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, color: colorVal}) });
++          overlay.querySelector('#new-team-name').value = '';
++          // reload team list
++          listEl.innerHTML = '';
++          (await fetch(apiEndpoint + '/teams').then(r=>r.json())).forEach(t=>{
++            const li2 = document.createElement('li');
++            li2.innerHTML = `<span style="width:12px;height:12px;display:inline-block;background:${t.color};margin-right:8px;"></span>${t.name}` +
++              ` <button data-name="${t.name}" class="remove-team">-</button>`;
++            listEl.appendChild(li2);
++          });
++        };
+        overlay.style.display = 'flex';
+      });
+    });
   </script>
   <script>
 // Delete User popup
@@ -577,7 +588,7 @@ document.getElementById('switch-manager').addEventListener('click', async () => 
     const mgrs = await fetch(apiEndpoint + '/managers?user=' + encodeURIComponent(currentUser)).then(r=>r.json());
     sel1.innerHTML = '';
     sel2.innerHTML = '';
-    mgrs.forEach(m => {
+    mgrs.filter(m => m !== currentUser).forEach(m => {
       const o1 = document.createElement('option'); o1.value = m; o1.textContent = m;
       const o2 = document.createElement('option'); o2.value = m; o2.textContent = m;
       sel1.appendChild(o1);
