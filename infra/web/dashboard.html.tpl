@@ -101,6 +101,7 @@
       <button id="create-user">Create a new user</button>
       <button id="create-group">Manage Teams</button>
       <button id="delete-user">Delete User</button>
+      <button id="switch-manager">Switch Manager</button>
     </div>
   </div>
   <!-- Create User Modal -->
@@ -164,6 +165,24 @@
       <div style="text-align:right;">
         <button id="cancel-delete">Cancel</button>
         <button id="confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+  <!-- Switch Manager Modal -->
+  <div id="switch-manager-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:2147483648;">
+    <div style="background:#fff; padding:20px; border-radius:8px; width:360px; box-shadow:0 2px 8px rgba(0,0,0,0.26); position:relative;">
+      <h2>Switch Manager</h2>
+      <div style="margin-bottom:10px;">
+        <label>Manager A:</label><br>
+        <select id="switch-manager-1" style="width:100%;"></select>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label>Manager B:</label><br>
+        <select id="switch-manager-2" style="width:100%;"></select>
+      </div>
+      <div style="text-align:right;">
+        <button id="cancel-switch">Cancel</button>
+        <button id="confirm-switch">Switch</button>
       </div>
     </div>
   </div>
@@ -547,5 +566,44 @@ document.getElementById('confirm-delete').addEventListener('click', async () => 
   } catch(e) { console.error(e); alert('Error deleting user'); }
 });
   </script>
+  <script>
+// Switch Manager popup
+const switchOverlay = document.getElementById('switch-manager-overlay');
+const sel1 = document.getElementById('switch-manager-1');
+const sel2 = document.getElementById('switch-manager-2');
+document.getElementById('switch-manager').addEventListener('click', async () => {
+  // fetch managers under current user
+  try {
+    const mgrs = await fetch(apiEndpoint + '/managers?user=' + encodeURIComponent(currentUser)).then(r=>r.json());
+    sel1.innerHTML = '';
+    sel2.innerHTML = '';
+    mgrs.forEach(m => {
+      const o1 = document.createElement('option'); o1.value = m; o1.textContent = m;
+      const o2 = document.createElement('option'); o2.value = m; o2.textContent = m;
+      sel1.appendChild(o1);
+      sel2.appendChild(o2);
+    });
+  } catch(e){console.error(e)}
+  switchOverlay.style.display = 'flex';
+});
+// Cancel switch
+document.getElementById('cancel-switch').addEventListener('click', () => {
+  switchOverlay.style.display = 'none';
+});
+// Confirm switch
+document.getElementById('confirm-switch').addEventListener('click', async () => {
+  const m1 = sel1.value;
+  const m2 = sel2.value;
+  if (!m1 || !m2 || m1 === m2) { alert('Select two different managers'); return; }
+  switchOverlay.style.display = 'none';
+  try {
+    await fetch(apiEndpoint + '/switch_manager', {
+      method: 'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ managerA: m1, managerB: m2 })
+    });
+    loadTree();
+  } catch(e){ console.error(e); alert('Error switching managers'); }
+});
+</script>
 </body>
 </html>
