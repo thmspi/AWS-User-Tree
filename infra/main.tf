@@ -28,10 +28,9 @@ provider "aws" {
 
 // Instantiate Hosting module (S3 + CloudFront + OAC)
 module "hosting" {
-  source                 = "./modules/hosting"
-  stack_id               = var.stack_id
+  source = "./modules/hosting"
+  # stack_id removed as not needed
   tags                   = var.tags
-  enable_logging         = var.enable_logging
   dashboard_api_endpoint = local.api_endpoint
   dashboard_logout_url   = local.logout_url
 }
@@ -39,7 +38,6 @@ module "hosting" {
 // Instantiate Auth module (Cognito User + Identity Pools)
 module "auth" {
   source               = "./modules/auth"
-  stack_id             = var.stack_id
   tags                 = var.tags
   admin_username       = var.admin_username
   admin_password       = var.admin_password
@@ -51,23 +49,21 @@ module "auth" {
 }
 // Instantiate Data module (DynamoDB for user tree)
 module "data" {
-  source         = "./modules/data"
-  stack_id       = var.stack_id
-  tags           = var.tags
-  admin_username     = var.admin_username
-  admin_given_name   = var.admin_given_name
-  admin_family_name  = var.admin_family_name
+  source            = "./modules/data"
+  tags              = var.tags
+  admin_username    = var.admin_username
+  admin_given_name  = var.admin_given_name
+  admin_family_name = var.admin_family_name
 }
 
 // Instantiate API module (Lambda + API Gateway)
 module "api" {
-  source     = "./modules/api"
-  stack_id   = var.stack_id
-  tags       = var.tags
-  table_name        = module.data.user_tree_table_name
-  teams_table_name  = module.data.teams_table_name
-    aws_region         = var.aws_region
-    user_pool_id       = module.auth.user_pool_id
+  source           = "./modules/api"
+  tags             = var.tags
+  table_name       = module.data.user_tree_table_name
+  teams_table_name = module.data.teams_table_name
+  aws_region       = var.aws_region
+  user_pool_id     = module.auth.user_pool_id
 }
 
 locals {

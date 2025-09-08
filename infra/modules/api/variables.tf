@@ -1,8 +1,3 @@
-variable "stack_id" {
-  description = "Unique stack identifier"
-  type        = string
-}
-
 variable "tags" {
   description = "Common tags map"
   type        = map(string)

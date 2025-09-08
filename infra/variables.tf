@@ -1,7 +1,3 @@
-variable "stack_id" {
-  description = "Unique stack identifier (e.g. dev, prod)"
-  type        = string
-}
 
 variable "tags" {
   description = "Common tags map"
@@ -29,12 +25,6 @@ variable "admin_given_name" {
 variable "admin_family_name" {
   description = "Last name for the root admin user"
   type        = string
-}
-
-variable "enable_logging" {
-  description = "Enable CloudFront access logging"
-  type        = bool
-  default     = false
 }
 
 variable "enable_identity_pool" {

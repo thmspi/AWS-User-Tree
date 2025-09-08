@@ -22,107 +22,88 @@ exports.handler = async (event) => {
     const body = JSON.parse(event.body || '{}');
     const { managerA, managerB } = body;
     if (!managerA || !managerB) return { statusCode:400, headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST,OPTIONS'}, body: 'Missing managers' };
-    // prevent switching ancestor and descendant
+    // fetch current items and snapshot relationships
     const scan = await doc.send(new ScanCommand({ TableName: table }));
     const items = scan.Items;
-    const childrenMap = items.reduce((acc, i) => { acc[i.username] = i.children || []; return acc; }, {});
-    function isDescendant(root, target) {
-      const stack = [...(childrenMap[root] || [])];
-      while (stack.length) {
-        const c = stack.pop();
-        if (c === target) return true;
-        stack.push(...(childrenMap[c] || []));
-      }
-      return false;
-    }
-    // scan entire table
-    // find nodes
-    const nodeA = items.find(i=>i.username === managerA);
-    const nodeB = items.find(i=>i.username === managerB);
-    if (!nodeA || !nodeB) return { statusCode:404, body: 'Manager not found' };
-    // swap their manager fields
-    const parentA = nodeA.manager;
-    const parentB = nodeB.manager;
-    await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerA}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentB}}));
-    await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerB}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentA}}));
-    // handle direct ancestor/descendant case
-    if (parentB === managerA) {
-      // managerA was direct parent of managerB
-      // children of A without B
-      const childrenA = (nodeA.children || []).filter(c => c !== managerB);
-      // children of B plus A
-      const childrenB = (nodeB.children || []).concat(managerA);
-      // update children arrays
-      await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerA}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':childrenA}}));
-      await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerB}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':childrenB}}));
-      // update parentA children list: replace A with B
-      if (parentA) {
-        const parentAItem = items.find(i=>i.username===parentA);
-        const updated = (parentAItem.children || []).filter(c=>c!==managerA).concat(managerB);
-        await doc.send(new UpdateCommand({ TableName: table, Key:{username:parentA}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':updated}}));
-      }
-      return { statusCode: 200, headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST,OPTIONS'}, body: JSON.stringify({ message:'Swapped'})};
-    }
-    // symmetric case: managerB was direct parent of managerA
-    if (parentA === managerB) {
-      // children of B without A
-      const childrenB = (nodeB.children || []).filter(c => c !== managerA);
-      // children of A plus B
-      const childrenA = (nodeA.children || []).concat(managerB);
-      // update children arrays
-      await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerB}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':childrenB}}));
-      await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerA}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':childrenA}}));
-      // update parentB children list: replace B with A under parentB's parent
-      if (parentB) {
-        const parentBItem = items.find(i=>i.username===parentB);
-        const updated = (parentBItem.children || []).filter(c=>c!==managerB).concat(managerA);
-        await doc.send(new UpdateCommand({ TableName: table, Key:{username:parentB}, UpdateExpression:'SET children=:c', ExpressionAttributeValues:{':c':updated}}));
-      }
-      return { statusCode: 200, headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST,OPTIONS'}, body: JSON.stringify({ message:'Swapped'})};
-    }
-    // swap children lists between managers
-    // prepare children lists and replace cross-references
-    let childrenA = nodeA.children || [];
-    let childrenB = nodeB.children || [];
-    // replace any occurrence of each other to avoid self-references
-    childrenA = childrenA.map(c => c === managerA ? managerB : c).map(c => c === managerB ? managerA : c);
-    childrenB = childrenB.map(c => c === managerB ? managerA : c).map(c => c === managerA ? managerB : c);
-    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenB } }));
-    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenA } }));
-    // update parents' children lists
-    if (parentA && parentB && parentA === parentB) {
-      // both managers under same parent: swap positions in children array
-      const parent = parentA;
-      const parentItem = items.find(i => i.username === parent);
-      const children = parentItem.children || [];
-      const newChildren = children.map(c => {
-        if (c === managerA) return managerB;
-        if (c === managerB) return managerA;
-        return c;
-      });
-      await doc.send(new UpdateCommand({
-        TableName: table,
-        Key: { username: parent },
-        UpdateExpression: 'SET children = :c',
-        ExpressionAttributeValues: { ':c': newChildren }
-      }));
+    console.log('Scan result count:', items.length);
+    // locate selected nodes
+    const nodeA = items.find(i => i.username === managerA) || {};
+    const nodeB = items.find(i => i.username === managerB) || {};
+    const parentA = nodeA.manager || null;
+    const parentB = nodeB.manager || null;
+    const childrenA = [...(nodeA.children || [])];
+    const childrenB = [...(nodeB.children || [])];
+    console.log('Initial state:', { managerA, managerB, parentA, parentB, childrenA, childrenB });
+    // snapshot parent children
+    let paChildren = parentA ? [...(items.find(i => i.username === parentA).children || [])] : [];
+    let pbChildren = parentB ? [...(items.find(i => i.username === parentB).children || [])] : [];
+    console.log('Parent lists before swap:', { paChildren, pbChildren });
+    // detect direct parent-child relations
+    const aIsParentOfB = parentB === managerA;
+    const bIsParentOfA = parentA === managerB;
+    // prepare new values
+    let newMgrA, newMgrB, newAChildren, newBChildren;
+    if (aIsParentOfB) {
+      console.log('Case: A is parent of B');
+  // Parent of A loses A, gains B
+  if (parentA) paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
+  // A.children becomes previous B.children
+  newAChildren = childrenB;
+  // B.children becomes previous A.children minus B plus A
+  newBChildren = childrenA.filter(c => c !== managerB).concat(managerA);
+      newMgrA = managerB;
+      newMgrB = parentA;
+    } else if (bIsParentOfA) {
+      console.log('Case: B is parent of A');
+  // Parent of B loses B, gains A
+  if (parentB) pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
+  // B.children becomes previous A.children
+  newBChildren = childrenA;
+  // A.children becomes previous B.children minus A plus B
+  newAChildren = childrenB.filter(c => c !== managerA).concat(managerB);
+      newMgrA = parentB;
+      newMgrB = managerA;
     } else {
-      // distinct parents: remove and add accordingly
-      async function updateChildList(parent, removeId, addId) {
-        const parentItem = items.find(i => i.username === parent);
-        const children = parentItem.children || [];
-        const filtered = children.filter(c => c !== removeId);
-        filtered.push(addId);
-        await doc.send(new UpdateCommand({
-          TableName: table,
-          Key: { username: parent },
-          UpdateExpression: 'SET children = :c',
-          ExpressionAttributeValues: { ':c': filtered }
-        }));
+      console.log('Case: Normal swap');
+      // normal swap: only modify parent lists if parents differ
+      if (parentA && parentA !== parentB) {
+        paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
       }
-      if (parentA) await updateChildList(parentA, managerA, managerB);
-      if (parentB) await updateChildList(parentB, managerB, managerA);
+      if (parentB && parentB !== parentA) {
+        pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
+      }
+      newAChildren = childrenB;
+      newBChildren = childrenA;
+      newMgrA = parentB;
+      newMgrB = parentA;
     }
+    console.log('Computed swap values:', { newMgrA, newMgrB, paChildren, pbChildren, newAChildren, newBChildren });
+    // apply parent children updates
+  if (parentA && parentA !== parentB) {
+      console.log('Updating children for parentA:', parentA, paChildren);
+      await doc.send(new UpdateCommand({
+        TableName: table, Key: { username: parentA },
+        UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': paChildren }
+      }));
+    }
+  if (parentB && parentB !== parentA) {
+      console.log('Updating children for parentB:', parentB, pbChildren);
+      await doc.send(new UpdateCommand({
+        TableName: table, Key: { username: parentB },
+        UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': pbChildren }
+      }));
+    }
+    // apply manager swaps
+    console.log('Updating manager for A:', managerA, '->', newMgrA);
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET manager = :m', ExpressionAttributeValues: { ':m': newMgrA } }));
+    console.log('Updating manager for B:', managerB, '->', newMgrB);
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET manager = :m', ExpressionAttributeValues: { ':m': newMgrB } }));
+    // apply new children lists for swapped nodes
+    console.log('Updating children for A:', managerA, newAChildren);
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
+    console.log('Updating children for B:', managerB, newBChildren);
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
+    // final response
     return {
       statusCode: 200,
       headers: {

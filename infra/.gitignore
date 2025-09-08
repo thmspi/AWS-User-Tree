@@ -2,4 +2,3 @@ terraform.tfstate
 terraform.tfvars
 .terraform
 .terraform.lock.hcl
-test.html
