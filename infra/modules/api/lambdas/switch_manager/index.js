@@ -45,18 +45,22 @@ exports.handler = async (event) => {
     let newMgrA, newMgrB, newAChildren, newBChildren;
     if (aIsParentOfB) {
       console.log('Case: A is parent of B');
-      // A was parent of B
-      if (parentA) paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
-      newAChildren = childrenB;
-      newBChildren = childrenA.filter(c => c !== managerB);
+  // Parent of A loses A, gains B
+  if (parentA) paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
+  // A.children becomes previous B.children
+  newAChildren = childrenB;
+  // B.children becomes previous A.children minus B plus A
+  newBChildren = childrenA.filter(c => c !== managerB).concat(managerA);
       newMgrA = managerB;
       newMgrB = parentA;
     } else if (bIsParentOfA) {
       console.log('Case: B is parent of A');
-      // B was parent of A
-      if (parentB) pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
-      newBChildren = childrenA;
-      newAChildren = childrenB.filter(c => c !== managerA);
+  // Parent of B loses B, gains A
+  if (parentB) pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
+  // B.children becomes previous A.children
+  newBChildren = childrenA;
+  // A.children becomes previous B.children minus A plus B
+  newAChildren = childrenB.filter(c => c !== managerA).concat(managerB);
       newMgrA = parentB;
       newMgrB = managerA;
     } else {
