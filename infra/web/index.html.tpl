@@ -8,7 +8,7 @@
   <style>
     :root {
       --color-text: #ccc6c6;
-      --color-main: #ef26c6;
+      --color-main: rgb(255 180 241);
       --color-secondary: #a90888;
       --color-black-main: rgb(10 10 10);
       --color-black-secondary: rgb(29 29 29);

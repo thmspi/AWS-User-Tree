@@ -10,8 +10,9 @@
   svg .link { stroke: rgb(255,180,241); }
     :root {
       --color-text: #ccc6c6;
-      --color-main: #ef26c6;
-      --color-secondary: #a90888;
+  --color-manager: #ef26c6;
+  --color-employee: #a90888;
+  --color-secondary: var(--color-employee);
       --color-black-main: rgb(10 10 10);
       --color-black-secondary: rgb(29 29 29);
     }
@@ -35,10 +36,10 @@
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container {
       flex: 1;
-      overflow: auto;
+      overflow: hidden; /* hide scrollbars, pan/zoom handles content */
       padding: 1em;
       margin: 1em;
-      background: var(--color-black-secondary);
+      background: var(--color-main-black);
       border: 2px solid var(--color-main);
       border-radius: 10px;
       transform-origin: 0 0;
@@ -54,7 +55,6 @@
       height: calc(100vh - 60px);
       overflow: visible;
       background: var(--color-black-secondary);
-      border-left: 2px solid var(--color-main);
       border-radius: 8px 0 0 8px;
       transition: width 0.3s ease;
       z-index: 2147483647;
@@ -81,7 +81,6 @@
       height: 36px;
       background: var(--color-black-secondary);
       color: var(--color-text);
-      border: 2px solid var(--color-main);
       border-radius: 4px 0 0 4px;
       display: flex;
       align-items: center;
@@ -106,9 +105,9 @@
       font-size: 14px;
       cursor: pointer;
     }
-    /* outline only the main card on hover */
+    /* outline card on hover with main color */
     .node > rect:hover {
-      stroke: #f39c12;
+      stroke: var(--color-main);
       stroke-width: 2px;
     }
     /* popup delete button */
@@ -136,6 +135,19 @@
     }
     button:hover, input:hover, select:hover, textarea:hover {
       outline: 2px solid var(--color-main);
+    }
+    /* logout link styling */
+    #controls a.logout {
+      margin-left: 0.5em;
+      padding: 0.5em 1em;
+      background-color: red;
+      color: white;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+    #controls a.logout:hover {
+      background-color: darkred;
     }
     button:focus, input:focus, select:focus, textarea:focus {
       outline: 2px solid var(--color-main);
@@ -354,13 +366,12 @@
           .attr('y', -cardHeight/2)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
-          .attr('fill', d => {
-            if (d.data.is_manager) return 'green';
+          .style('fill', d => {
+            if (d.data.is_manager) return 'var(--color-manager)';
             if (d.data.team && d.data.team.length) {
-              return teamColorMap[d.data.team[0]] || 'blue';
+              return teamColorMap[d.data.team[0]] || 'var(--color-employee)';
             }
-            if (d.children && d.children.length) return 'red';
-            return 'blue';
+            return 'var(--color-employee)';
           })
           .attr('rx', 5)
           .attr('ry', 5);
