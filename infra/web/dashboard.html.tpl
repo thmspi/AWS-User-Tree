@@ -171,7 +171,7 @@
 <body>
   <header>
     <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
-      <img src="/static/tree.svg" alt="My Org Tree" style="height:32px;" />
+      <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">

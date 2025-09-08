@@ -50,7 +50,7 @@
 </head>
 <body>
   <div class="logo-container" style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
-  <img src="/static/tree.svg" alt="My Org Tree" style="height:32px;" />
+  <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
     <span style="font-size:1.5rem; color:var(--color-text);">My Org Tree</span>
   </div>
   <h1>Restricted Access</h1>
