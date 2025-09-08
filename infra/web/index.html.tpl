@@ -49,6 +49,10 @@
   </style>
 </head>
 <body>
+  <div class="logo-container" style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
+    <img src="tree.svg" alt="My Org Tree" style="height:32px;" />
+    <span style="font-size:1.5rem; color:var(--color-text);">My Org Tree</span>
+  </div>
   <h1>Restricted Access</h1>
   <p>Please login to continue.</p>
   <button onclick="window.location.href='${login_url}'">Login with Cognito</button>

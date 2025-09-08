@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - AWS User Tree SPA</title>
   <style>
+  /* Tree connector lines in pink */
+  svg .link { stroke: rgb(255,180,241); }
     :root {
       --color-text: #ccc6c6;
       --color-main: #ef26c6;
@@ -136,7 +138,10 @@
 </head>
 <body>
   <header>
-    <div>Dashboard</div>
+    <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
+      <img src="tree.svg" alt="My Org Tree" style="height:32px;" />
+      <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
+    </div>
     <div id="controls">
       <a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a>
     </div>
