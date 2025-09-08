@@ -47,48 +47,45 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-  top: 50%; /* center vertically next to toggle */
-  transform: translateY(-50%);
+      top: 50%;
       right: 0;
-      width: 0; /* closed */
-      height: auto;
-      pointer-events: auto;
-      z-index: 2147483647;
-  background: var(--color-black-secondary);
-  border: 2px solid var(--color-main);
-  border-radius: 8px 0 0 8px;
+      transform: translateY(-50%);
+      background: var(--color-black-secondary);
+      border: 2px solid var(--color-main);
+      border-radius: 8px 0 0 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-end;
+      pointer-events: auto;
+      z-index: 2147483647;
     }
-    #slide-menu.open {
-  width: auto; /* size to content */
-      transition: width 0.3s ease;
+    /* Hide options when closed */
+    #menu-options {
+      display: none;
+      flex-direction: column;
+      padding: 0.5em;
+    }
+    /* Show options when open */
+    #slide-menu.open #menu-options {
+      display: flex;
     }
     #menu-toggle {
-      position: fixed;
-      top: calc(60px + 50vh - 20px);
-      right: 0;
-      transform: translateY(-50%);
-      z-index: 2147483648;
+      background: var(--color-black-main);
+      color: #fff;
+      border: 2px solid var(--color-main);
       width: 36px;
       height: 36px;
-      background: var(--color-main);
-      color: var(--color-text);
-      border: none;
       border-radius: 4px 0 0 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: right 0.3s ease, transform 0.3s ease;
+      transition: transform 0.3s ease;
     }
+    /* Rotate toggle arrow when open */
     #slide-menu.open #menu-toggle {
-      /* move toggle right by menu width when open */
-      right: 200px;
-      opacity: 1;
-      transform: translateY(-50%) rotate(180deg);
+      transform: rotate(180deg);
     }
     #menu-options {
       display: flex;

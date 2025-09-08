@@ -111,7 +111,7 @@ resource "aws_s3_object" "dashboard_html" {
 # Upload logo SVG for SPA
 resource "aws_s3_object" "tree_svg" {
   bucket        = aws_s3_bucket.spa.bucket
-  key           = "static/tree.svg"
+  key           = "static/sakura_tree.svg"
   source        = "${path.module}/../../web/assets/tree.svg"
   content_type  = "image/svg+xml"
   cache_control = "max-age=31536000"
