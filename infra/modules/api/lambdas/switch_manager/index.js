@@ -34,21 +34,11 @@ exports.handler = async (event) => {
     const parentB = nodeB.manager;
     await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerA}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentB}}));
     await doc.send(new UpdateCommand({ TableName: table, Key:{username:managerB}, UpdateExpression:'SET manager=:p', ExpressionAttributeValues:{':p':parentA}}));
-    // swap children between managers
+    // swap children lists between managers
     const childrenA = nodeA.children || [];
     const childrenB = nodeB.children || [];
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerA },
-      UpdateExpression: 'SET children = :c',
-      ExpressionAttributeValues: { ':c': childrenB }
-    }));
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerB },
-      UpdateExpression: 'SET children = :c',
-      ExpressionAttributeValues: { ':c': childrenA }
-    }));
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenB } }));
+    await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenA } }));
     // update parents' children lists
     if (parentA && parentB && parentA === parentB) {
       // both managers under same parent: swap positions in children array

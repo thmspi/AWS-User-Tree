@@ -1,5 +1,3 @@
-            li2.innerHTML = `<span style="width:12px;height:12px;display:inline-block;background:$${t.color};margin-right:8px;"></span>$${t.name}` +
-              ` <button data-name="$${t.name}" class="remove-team">-</button>`;
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -503,32 +501,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const listEl = document.getElementById('team-list'); listEl.innerHTML = '';
     try {
       const teams = await fetch(apiEndpoint + '/teams').then(r => r.json());
-    teams.forEach(t => {
-    const li = document.createElement('li');
-    const color = t.color || '#0073bb';
-          li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${color};margin-right:8px;"></span>$${t.name}` +
-            ` <button data-name="$${t.name}" class="remove-team">-</button>`;
+      teams.forEach(t => {
+        const li = document.createElement('li');
+        const color = t.color || '#0073bb';
+  li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${color};margin-right:8px;"></span>$${t.name}` +
+           ` <button data-name="$${t.name}" class="remove-team">-</button>`;
         listEl.appendChild(li);
       });
-+        // bind Add button
-+        document.getElementById('add-team-btn').onclick = async () => {
-+          const name = document.getElementById('new-team-name').value.trim();
-+          const colorVal = document.getElementById('new-team-color').value;
-+          if (!name) return alert('Enter team name');
-+          await fetch(apiEndpoint + '/teams', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, color: colorVal}) });
-+          overlay.querySelector('#new-team-name').value = '';
-+          // reload team list
-+          listEl.innerHTML = '';
-+          (await fetch(apiEndpoint + '/teams').then(r=>r.json())).forEach(t=>{
-+            const li2 = document.createElement('li');
-+            li2.innerHTML = `<span style="width:12px;height:12px;display:inline-block;background:${t.color};margin-right:8px;"></span>${t.name}` +
-+              ` <button data-name="${t.name}" class="remove-team">-</button>`;
-+            listEl.appendChild(li2);
-+          });
-+        };
-        overlay.style.display = 'flex';
-      });
+    } catch(e) { console.error(e); }
+    overlay.style.display = 'flex';
+  });
+});
+// Close Manage Teams modal
+document.getElementById('close-team-modal').addEventListener('click', () => {
+  document.getElementById('team-modal-overlay').style.display = 'none';
+});
+// Add Team button handler
+document.getElementById('add-team-btn').addEventListener('click', async () => {
+  const nameInput = document.getElementById('new-team-name');
+  const colorInput = document.getElementById('new-team-color');
+  const name = nameInput.value.trim();
+  const color = colorInput.value;
+  if (!name) { alert('Enter team name'); return; }
+  try {
+    await fetch(apiEndpoint + '/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, color })
     });
+    // reload list
+    const listEl = document.getElementById('team-list'); listEl.innerHTML = '';
+    const teams = await fetch(apiEndpoint + '/teams').then(r => r.json());
+    teams.forEach(t => {
+      const li = document.createElement('li');
+      const clr = t.color || '#0073bb';
+      li.innerHTML = `<span style="display:inline-block;width:12px;height:12px;background:$${clr};margin-right:8px;"></span>$${t.name}` +
+        ` <button data-name="$${t.name}" class="remove-team">-</button>`;
+      listEl.appendChild(li);
+    });
+    nameInput.value = '';
+  } catch (e) {
+    console.error('Error adding team:', e);
+    alert('Error adding team');
+  }
+});
   </script>
   <script>
 // Delete User popup
@@ -590,7 +606,7 @@ document.getElementById('switch-manager').addEventListener('click', async () => 
     const mgrs = await fetch(apiEndpoint + '/managers?user=' + encodeURIComponent(currentUser)).then(r=>r.json());
     sel1.innerHTML = '';
     sel2.innerHTML = '';
-    mgrs.filter(m => m !== currentUser).forEach(m => {
+    mgrs.forEach(m => {
       const o1 = document.createElement('option'); o1.value = m; o1.textContent = m;
       const o2 = document.createElement('option'); o2.value = m; o2.textContent = m;
       sel1.appendChild(o1);
