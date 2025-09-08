@@ -115,6 +115,18 @@
     .popup-delete {
       cursor: pointer;
     }
+    /* D3 detail popup styling */
+    g.popup rect {
+      fill: var(--color-black-main);
+      stroke: var(--color-main);
+      stroke-width: 2px;
+    }
+    /* HTML modal dialogs styling */
+    [id$="-overlay"] > div {
+      background-color: var(--color-black-main) !important;
+      border: 2px solid var(--color-main);
+      color: var(--color-text);
+    }
     /* Graph styling */
     svg .link { stroke: var(--color-text); }
     .node text { fill: var(--color-text); }
@@ -141,14 +153,14 @@
     #logout {
       margin-left: 0.5em;
       padding: 0.5em 1em;
-      background-color: red;
+      background-color: #4b0606;
       color: white;
       border-radius: 4px;
       text-decoration: none;
       transition: background-color 0.2s ease;
     }
     #logout:hover {
-      background-color: darkred;
+      background-color: red;
     }
     button:focus, input:focus, select:focus, textarea:focus {
       outline: 2px solid var(--color-main);
