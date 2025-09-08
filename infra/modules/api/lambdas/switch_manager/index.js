@@ -77,55 +77,6 @@ exports.handler = async (event) => {
         ExpressionAttributeValues: { ':c': updatedB }
       }));
     }
-    // 4) swap children arrays between managers
-    const childrenA = nodeA.children || [];
-    const childrenB = nodeB.children || [];
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerA },
-      UpdateExpression: 'SET children = :c',
-      ExpressionAttributeValues: { ':c': childrenB }
-    }));
-    await doc.send(new UpdateCommand({
-      TableName: table,
-      Key: { username: managerB },
-      UpdateExpression: 'SET children = :c',
-      ExpressionAttributeValues: { ':c': childrenA }
-    }));
-    // update parents' children lists
-    if (parentA && parentB && parentA === parentB) {
-      // both managers under same parent: swap positions in children array
-      const parent = parentA;
-      const parentItem = items.find(i => i.username === parent);
-      const children = parentItem.children || [];
-      const newChildren = children.map(c => {
-        if (c === managerA) return managerB;
-        if (c === managerB) return managerA;
-        return c;
-      });
-      await doc.send(new UpdateCommand({
-        TableName: table,
-        Key: { username: parent },
-        UpdateExpression: 'SET children = :c',
-        ExpressionAttributeValues: { ':c': newChildren }
-      }));
-    } else {
-      // distinct parents: remove and add accordingly
-      async function updateChildList(parent, removeId, addId) {
-        const parentItem = items.find(i => i.username === parent);
-        const children = parentItem.children || [];
-        const filtered = children.filter(c => c !== removeId);
-        filtered.push(addId);
-        await doc.send(new UpdateCommand({
-          TableName: table,
-          Key: { username: parent },
-          UpdateExpression: 'SET children = :c',
-          ExpressionAttributeValues: { ':c': filtered }
-        }));
-      }
-      if (parentA) await updateChildList(parentA, managerA, managerB);
-      if (parentB) await updateChildList(parentB, managerB, managerA);
-    }
     return {
       statusCode: 200,
       headers: {
