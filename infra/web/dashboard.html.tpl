@@ -45,38 +45,40 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 60px; /* slide down below the header bar */
+      top: 60px; /* below header */
       right: 0;
-      width: 0;  /* fully closed by default */
-      height: calc(100vh - 60px); /* full height minus header */
-      overflow: visible;
+      width: 0; /* closed */
+      height: auto;
       pointer-events: auto;
-      z-index: 2147483647; /* topmost */
-      background: #f0f0f0;
-      border-left: 1px solid #ccc;
-      /* remove translateY for full-height panel */
+      z-index: 2147483647;
+      background: var(--color-black-secondary);
+      border-radius: 8px 0 0 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
     }
     #slide-menu.open {
-      width: 200px;
+      width: auto; /* size to content */
       transition: width 0.3s ease;
     }
     #menu-toggle {
-      /* Make toggle fixed to viewport edge */
       position: fixed;
-      top: calc(60px + 50vh - 20px); /* below header, centered */
+      top: calc(60px + 50vh - 20px);
       right: 0;
       transform: translateY(-50%);
       z-index: 2147483648;
-      pointer-events: auto;
-      width: 20px;
-      height: 40px;
-      background: #eee;
-      color: #333;
-      border: 1px solid #ccc;
-      text-align: center;
-      line-height: 40px;
-      opacity: 1;  /* ensure the toggle is always visible */
-      transition: right 0.3s ease, opacity 0.3s ease;
+      width: 36px;
+      height: 36px;
+      background: var(--color-main);
+      color: var(--color-text);
+      border: none;
+      border-radius: 4px 0 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: right 0.3s ease, transform 0.3s ease;
     }
     #slide-menu.open #menu-toggle {
       /* move toggle right by menu width when open */
