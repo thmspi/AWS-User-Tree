@@ -112,7 +112,7 @@ resource "aws_s3_object" "dashboard_html" {
 resource "aws_s3_object" "tree_svg" {
   bucket        = aws_s3_bucket.spa.bucket
   key           = "static/tree.svg"
-  source        = "${path.module}/../../web/tree.svg"
+  source        = "${path.module}/../../web/assets/tree.svg"
   content_type  = "image/svg+xml"
   cache_control = "max-age=31536000"
 }
