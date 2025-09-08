@@ -34,13 +34,14 @@
   #controls { margin-left:auto; display:flex; align-items:center; gap:0.5em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container {
-      flex:1;
-      overflow:auto;
-      padding:1em;
-      margin:1em;
-  background: var(--color-black-secondary);
+      flex: 1;
+      overflow: auto;
+      padding: 1em;
+      margin: 1em;
+      background: var(--color-black-secondary);
+      border: 2px solid var(--color-main);
       border-radius: 10px;
-      transform-origin:0 0;
+      transform-origin: 0 0;
       max-width: calc(100% - 2em);
       max-height: calc(100% - 2em - 60px); /* account for header and margin */
     }
@@ -54,26 +55,28 @@
       border: 2px solid var(--color-main);
       border-radius: 8px 0 0 8px;
       overflow: hidden;
+      width: 36px; /* only toggle visible when closed */
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      pointer-events: auto;
       z-index: 2147483647;
     }
-    /* Hide options when closed */
-    #menu-options {
-      display: none;
+    /* menu-options hidden until open */
+    #menu-options { display: none; }
+    /* reveal options on open, container expands */
+    #slide-menu.open {
+      width: 200px;
+    }
+    #slide-menu.open #menu-options {
+      display: flex;
       flex-direction: column;
       padding: 0.5em;
     }
-    /* Show options when open */
-    #slide-menu.open #menu-options {
-      display: flex;
-    }
+    /* Slide toggle button inside menu */
     #menu-toggle {
-      background: var(--color-black-main);
-      color: #fff;
-      border: 2px solid var(--color-main);
+      background: var(--color-main);
+      color: var(--color-text);
+      border: none;
       width: 36px;
       height: 36px;
       border-radius: 4px 0 0 4px;
@@ -83,9 +86,9 @@
       cursor: pointer;
       transition: transform 0.3s ease;
     }
-    /* Rotate toggle arrow when open */
-    #slide-menu.open #menu-toggle {
-      transform: rotate(180deg);
+    /* center toggle vertically within menu */
+    #menu-toggle {
+      margin: auto 0;
     }
     #menu-options {
       display: flex;
