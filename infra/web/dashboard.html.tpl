@@ -6,8 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - AWS User Tree SPA</title>
   <style>
-    body { background-color: black;margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; height:100vh; }
-  header { padding:1em; background:#0073bb; color:#fff; display:flex; align-items:center; }
+    :root {
+      --color-text: #ccc6c6;
+      --color-main: #ef26c6;
+      --color-secondary: #a90888;
+      --color-black-main: rgb(10 10 10);
+      --color-black-secondary: rgb(29 29 29);
+    }
+    body {
+      background-color: var(--color-black-main);
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      color: var(--color-text);
+    }
+  header {
+    padding: 1em;
+    background: var(--color-black-secondary);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+  }
   #controls { margin-left:auto; display:flex; align-items:center; gap:0.5em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container {
@@ -15,7 +36,7 @@
       overflow:auto;
       padding:1em;
       margin:1em;
-      background: #fff;
+  background: var(--color-black-secondary);
       border-radius: 10px;
       transform-origin:0 0;
       max-width: calc(100% - 2em);
@@ -82,6 +103,31 @@
     /* popup delete button */
     .popup-delete {
       cursor: pointer;
+    }
+    /* Graph styling */
+    svg .link { stroke: var(--color-text); }
+    .node text { fill: var(--color-text); }
+    /* Form and control styling */
+    input, select, textarea { 
+      background-color: var(--color-black-secondary); 
+      color: var(--color-text); 
+      border: 1px solid var(--color-secondary); 
+      padding: 0.5em;
+      border-radius: 4px;
+    }
+    button {
+      background-color: var(--color-secondary);
+      color: var(--color-text);
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover, input:hover, select:hover, textarea:hover {
+      outline: 2px solid var(--color-main);
+    }
+    button:focus, input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--color-main);
     }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>

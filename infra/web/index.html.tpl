@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restricted Access</title>
   <style>
+    :root {
+      --color-text: #ccc6c6;
+      --color-main: #ef26c6;
+      --color-secondary: #a90888;
+      --color-black-main: rgb(10 10 10);
+      --color-black-secondary: rgb(29 29 29);
+    }
     body {
       display: flex;
       flex-direction: column;
@@ -14,28 +21,30 @@
       height: 100vh;
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      background-color: var(--color-black-main);
+      color: var(--color-text);
     }
     h1 {
       font-size: 2rem;
       margin-bottom: 0.5em;
+      color: var(--color-text);
     }
     p {
       font-size: 1.2rem;
       margin-bottom: 1.5em;
+      color: var(--color-text);
     }
     button {
       padding: 0.75em 1.5em;
       font-size: 1rem;
       border: none;
-      background-color: #0073bb;
-      color: #fff;
+      background-color: var(--color-secondary);
+      color: var(--color-text);
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #005fa3;
+    button:hover, button:focus {
+      outline: 2px solid var(--color-main);
     }
   </style>
 </head>
