@@ -80,7 +80,7 @@ resource "aws_cognito_user_in_group" "admin_manager" {
 
 # Hosted UI Domain for Cognito
 resource "aws_cognito_user_pool_domain" "this" {
-  domain       = terraform.workspace
+  domain       = "${terraform.workspace}-${random_id.cognito_domain_suffix.hex}"
   user_pool_id = aws_cognito_user_pool.this.id
 }
 
@@ -144,4 +144,8 @@ resource "aws_cognito_identity_pool_roles_attachment" "this" {
   roles = {
     authenticated = aws_iam_role.authenticated[0].arn
   }
+}
+
+resource "random_id" "cognito_domain_suffix" {
+  byte_length = 3
 }
