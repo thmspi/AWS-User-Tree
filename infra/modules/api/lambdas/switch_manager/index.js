@@ -61,9 +61,13 @@ exports.handler = async (event) => {
       newMgrB = managerA;
     } else {
       console.log('Case: Normal swap');
-      // normal swap
-      if (parentA) paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
-      if (parentB) pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
+      // normal swap: only modify parent lists if parents differ
+      if (parentA && parentA !== parentB) {
+        paChildren = paChildren.filter(c => c !== managerA).concat(managerB);
+      }
+      if (parentB && parentB !== parentA) {
+        pbChildren = pbChildren.filter(c => c !== managerB).concat(managerA);
+      }
       newAChildren = childrenB;
       newBChildren = childrenA;
       newMgrA = parentB;
@@ -71,14 +75,14 @@ exports.handler = async (event) => {
     }
     console.log('Computed swap values:', { newMgrA, newMgrB, paChildren, pbChildren, newAChildren, newBChildren });
     // apply parent children updates
-    if (parentA) {
+  if (parentA && parentA !== parentB) {
       console.log('Updating children for parentA:', parentA, paChildren);
       await doc.send(new UpdateCommand({
         TableName: table, Key: { username: parentA },
         UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': paChildren }
       }));
     }
-    if (parentB) {
+  if (parentB && parentB !== parentA) {
       console.log('Updating children for parentB:', parentB, pbChildren);
       await doc.send(new UpdateCommand({
         TableName: table, Key: { username: parentB },
