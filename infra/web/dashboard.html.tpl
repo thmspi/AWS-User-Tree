@@ -124,7 +124,7 @@
     /* HTML modal dialogs styling */
     [id$="-overlay"] > div {
       background-color: var(--color-black-main) !important;
-      border: 2px solid var(--color-main);
+      border: 1px solid var(--color-black-secondary);
       color: var(--color-text);
     }
     /* Graph styling */
@@ -134,7 +134,7 @@
     input, select, textarea { 
       background-color: var(--color-black-secondary); 
       color: var(--color-text); 
-      border: 1px solid var(--color-secondary); 
+      border: none; 
       padding: 0.5em;
       border-radius: 4px;
     }
