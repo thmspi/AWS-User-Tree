@@ -604,9 +604,11 @@ document.getElementById('switch-manager').addEventListener('click', async () => 
   // fetch managers under current user
   try {
     const mgrs = await fetch(apiEndpoint + '/managers?user=' + encodeURIComponent(currentUser)).then(r=>r.json());
+    // exclude current user
+    const options = mgrs.filter(m => m !== currentUser);
     sel1.innerHTML = '';
     sel2.innerHTML = '';
-    mgrs.forEach(m => {
+    options.forEach(m => {
       const o1 = document.createElement('option'); o1.value = m; o1.textContent = m;
       const o2 = document.createElement('option'); o2.value = m; o2.textContent = m;
       sel1.appendChild(o1);

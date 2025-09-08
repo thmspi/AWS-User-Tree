@@ -81,8 +81,12 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST,OPTIONS'}, body: JSON.stringify({ message:'Swapped'})};
     }
     // swap children lists between managers
-    const childrenA = nodeA.children || [];
-    const childrenB = nodeB.children || [];
+    // prepare children lists and replace cross-references
+    let childrenA = nodeA.children || [];
+    let childrenB = nodeB.children || [];
+    // replace any occurrence of each other to avoid self-references
+    childrenA = childrenA.map(c => c === managerA ? managerB : c).map(c => c === managerB ? managerA : c);
+    childrenB = childrenB.map(c => c === managerB ? managerA : c).map(c => c === managerA ? managerB : c);
     await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenB } }));
     await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenA } }));
     // update parents' children lists
