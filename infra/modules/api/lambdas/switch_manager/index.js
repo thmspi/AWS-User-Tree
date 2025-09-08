@@ -77,6 +77,27 @@ exports.handler = async (event) => {
         ExpressionAttributeValues: { ':c': updatedB }
       }));
     }
+    // 4) swap children lists based on relationship
+    const childrenA = nodeA.children || [];
+    const childrenB = nodeB.children || [];
+    if (parentB === managerA) {
+      // direct parent-child: A was parent of B
+      const newAChildren = childrenB.concat(managerA);
+      const newBChildren = childrenA.filter(c => c !== managerB);
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
+    } else if (parentA === managerB) {
+      // symmetric: B was parent of A
+      const newBChildren = childrenA.concat(managerB);
+      const newAChildren = childrenB.filter(c => c !== managerA);
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newBChildren } }));
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': newAChildren } }));
+    } else {
+      // normal case: swap lists
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerA }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenB } }));
+      await doc.send(new UpdateCommand({ TableName: table, Key: { username: managerB }, UpdateExpression: 'SET children = :c', ExpressionAttributeValues: { ':c': childrenA } }));
+    }
+    // final response
     return {
       statusCode: 200,
       headers: {
