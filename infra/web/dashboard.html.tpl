@@ -48,47 +48,52 @@
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 50%;
+      top: 60px; /* below header */
       right: 0;
-      transform: translateY(-50%);
+      width: 0;  /* closed */
+      height: calc(100vh - 60px);
+      overflow: visible;
       background: var(--color-black-secondary);
-      border: 2px solid var(--color-main);
+      border-left: 2px solid var(--color-main);
       border-radius: 8px 0 0 8px;
-      overflow: hidden;
-      width: 36px; /* only toggle visible when closed */
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+      transition: width 0.3s ease;
       z-index: 2147483647;
     }
-    /* menu-options hidden until open */
-    #menu-options { display: none; }
-    /* reveal options on open, container expands */
     #slide-menu.open {
       width: 200px;
     }
-    #slide-menu.open #menu-options {
-      display: flex;
+    /* hide options until open */
+    #menu-options {
+      display: none;
       flex-direction: column;
       padding: 0.5em;
     }
+    /* reveal options when open */
+    #slide-menu.open #menu-options {
+      display: flex;
+    }
     /* Slide toggle button inside menu */
     #menu-toggle {
-      background: var(--color-main);
-      color: var(--color-text);
-      border: none;
+      position: fixed;
+      top: calc(60px + 50vh - 18px);
+      right: 0;
       width: 36px;
       height: 36px;
+      background: var(--color-black-secondary);
+      color: var(--color-text);
+      border: 2px solid var(--color-main);
       border-radius: 4px 0 0 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: right 0.3s ease, transform 0.3s ease;
+      z-index: 2147483648;
     }
-    /* center toggle vertically within menu */
-    #menu-toggle {
-      margin: auto 0;
+    /* rotate toggle when open */
+    #slide-menu.open #menu-toggle {
+      right: 200px;
+      transform: rotate(180deg);
     }
     #menu-options {
       display: flex;
