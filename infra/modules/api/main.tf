@@ -3,7 +3,7 @@ data "aws_caller_identity" "current" {}
 
 // IAM role for Lambda execution
 resource "aws_iam_role" "lambda_exec" {
-  name               = "${terraform.workspace}-${var.stack_id}-lambda-exec-role"
+  name               = "${terraform.workspace}-lambda-exec-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
 }
 
@@ -26,9 +26,9 @@ data "aws_iam_policy_document" "dynamo_read" {
       "dynamodb:GetItem",
       "dynamodb:Query",
       "dynamodb:Scan",
-  "dynamodb:PutItem",
-  "dynamodb:UpdateItem",
-  "dynamodb:DeleteItem"
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem"
     ]
     resources = [
       "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.table_name}",
@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "dynamo_read" {
 }
 
 resource "aws_iam_role_policy" "lambda_dynamo" {
-  name   = "${terraform.workspace}-${var.stack_id}-lambda-dynamo-policy"
+  name   = "${terraform.workspace}-lambda-dynamo-policy"
   role   = aws_iam_role.lambda_exec.name
   policy = data.aws_iam_policy_document.dynamo_read.json
 }
@@ -59,7 +59,7 @@ data "aws_iam_policy_document" "cognito_access" {
 }
 
 resource "aws_iam_role_policy" "lambda_cognito" {
-  name   = "${terraform.workspace}-${var.stack_id}-lambda-cognito-policy"
+  name   = "${terraform.workspace}-lambda-cognito-policy"
   role   = aws_iam_role.lambda_exec.name
   policy = data.aws_iam_policy_document.cognito_access.json
 }
@@ -73,13 +73,13 @@ resource "archive_file" "user_tree_zip" {
 
 // Lambda function for user tree
 resource "aws_lambda_function" "user_tree" {
-  filename      = archive_file.user_tree_zip.output_path
+  filename = archive_file.user_tree_zip.output_path
   # Force update when ZIP content changes
   source_code_hash = archive_file.user_tree_zip.output_base64sha256
-  function_name = "${terraform.workspace}-${var.stack_id}-user-tree"
-  handler       = "index.handler"
-  runtime       = "nodejs22.x"
-  role          = aws_iam_role.lambda_exec.arn
+  function_name    = "${terraform.workspace}-user-tree"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
   environment {
     variables = {
       TABLE_NAME = var.table_name
@@ -89,14 +89,14 @@ resource "aws_lambda_function" "user_tree" {
 }
 // Package and deploy fetch_team Lambda
 resource "archive_file" "fetch_team_zip" {
-  type       = "zip"
-  source_dir = "${path.module}/lambdas/fetch_team"
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/fetch_team"
   output_path = "${path.module}/fetch_team.zip"
 }
 resource "aws_lambda_function" "fetch_team" {
   filename         = archive_file.fetch_team_zip.output_path
   source_code_hash = archive_file.fetch_team_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-fetch-team"
+  function_name    = "${terraform.workspace}-fetch-team"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -109,14 +109,14 @@ resource "aws_lambda_function" "fetch_team" {
 }
 // Package and deploy fetch_manager Lambda
 resource "archive_file" "fetch_manager_zip" {
-  type       = "zip"
-  source_dir = "${path.module}/lambdas/fetch_manager"
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/fetch_manager"
   output_path = "${path.module}/fetch_manager.zip"
 }
 resource "aws_lambda_function" "fetch_manager" {
   filename         = archive_file.fetch_manager_zip.output_path
   source_code_hash = archive_file.fetch_manager_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-fetch-manager"
+  function_name    = "${terraform.workspace}-fetch-manager"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -129,14 +129,14 @@ resource "aws_lambda_function" "fetch_manager" {
 }
 // Package and deploy checkavailability Lambda
 resource "archive_file" "checkavailability_zip" {
-  type       = "zip"
-  source_dir = "${path.module}/lambdas/checkavailability"
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/checkavailability"
   output_path = "${path.module}/checkavailability.zip"
 }
 resource "aws_lambda_function" "checkavailability" {
   filename         = archive_file.checkavailability_zip.output_path
   source_code_hash = archive_file.checkavailability_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-checkavailability"
+  function_name    = "${terraform.workspace}-checkavailability"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -154,7 +154,7 @@ resource "archive_file" "cognito_register_zip" {
 resource "aws_lambda_function" "cognito_register" {
   filename         = archive_file.cognito_register_zip.output_path
   source_code_hash = archive_file.cognito_register_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-cognito-register"
+  function_name    = "${terraform.workspace}-cognito-register"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -172,14 +172,14 @@ resource "archive_file" "dynamo_register_zip" {
 resource "aws_lambda_function" "dynamo_register" {
   filename         = archive_file.dynamo_register_zip.output_path
   source_code_hash = archive_file.dynamo_register_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-dynamo-register"
+  function_name    = "${terraform.workspace}-dynamo-register"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
   environment {
     variables = {
-      TABLE_NAME       = var.table_name
-      TEAMS_TABLE      = var.teams_table_name
+      TABLE_NAME  = var.table_name
+      TEAMS_TABLE = var.teams_table_name
     }
   }
   depends_on = [archive_file.dynamo_register_zip]
@@ -193,7 +193,7 @@ resource "archive_file" "manage_team_zip" {
 resource "aws_lambda_function" "manage_team" {
   filename         = archive_file.manage_team_zip.output_path
   source_code_hash = archive_file.manage_team_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-manage-team"
+  function_name    = "${terraform.workspace}-manage-team"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -211,7 +211,7 @@ resource "archive_file" "delete_user_zip" {
 resource "aws_lambda_function" "delete_user" {
   filename         = archive_file.delete_user_zip.output_path
   source_code_hash = archive_file.delete_user_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-delete-user"
+  function_name    = "${terraform.workspace}-delete-user"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -232,7 +232,7 @@ resource "archive_file" "switch_manager_zip" {
 resource "aws_lambda_function" "switch_manager" {
   filename         = archive_file.switch_manager_zip.output_path
   source_code_hash = archive_file.switch_manager_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-${var.stack_id}-switch-manager"
+  function_name    = "${terraform.workspace}-switch-manager"
   handler          = "index.handler"
   runtime          = "nodejs22.x"
   role             = aws_iam_role.lambda_exec.arn
@@ -251,7 +251,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
 
 // HTTP API Gateway
 resource "aws_apigatewayv2_api" "http" {
-  name          = "${terraform.workspace}-${var.stack_id}-api"
+  name          = "${terraform.workspace}-api"
   protocol_type = "HTTP"
   cors_configuration {
     allow_origins = ["*"]

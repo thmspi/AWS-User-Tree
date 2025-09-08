@@ -1,6 +1,6 @@
 // DynamoDB table for user tree storage
 resource "aws_dynamodb_table" "user_tree" {
-  name         = "${terraform.workspace}-${var.stack_id}-user-tree"
+  name         = "${terraform.workspace}-user-tree"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "username"
 
@@ -13,7 +13,7 @@ resource "aws_dynamodb_table" "user_tree" {
 }
 // DynamoDB table for user teams
 resource "aws_dynamodb_table" "teams" {
-  name         = "${terraform.workspace}-${var.stack_id}-teams"
+  name         = "${terraform.workspace}-teams"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "team_id"
 
@@ -31,20 +31,20 @@ resource "aws_dynamodb_table_item" "admin" {
   hash_key   = "username"
   # Seed the root admin user with full attribute set
   item = jsonencode({
-    username     = { S    = var.admin_username }
-    given_name   = { S    = var.admin_given_name }
-    family_name  = { S    = var.admin_family_name }
-    level        = { N    = "0" }
+    username    = { S = var.admin_username }
+    given_name  = { S = var.admin_given_name }
+    family_name = { S = var.admin_family_name }
+    level       = { N = "0" }
     // no children initially
-    children     = { L    = [] }
-  team         = { L    = [] }
-  // root user job title
-  job          = { L    = [{ S = "Administrator" }] }
-  permissions  = { L    = [] }
-  // mark this user explicitly as a manager
-  is_manager   = { BOOL = true }
-  # explicit manager field for root (no parent)
-  manager      = { S    = "" }
+    children = { L = [] }
+    team     = { L = [] }
+    // root user job title
+    job         = { L = [{ S = "Administrator" }] }
+    permissions = { L = [] }
+    // mark this user explicitly as a manager
+    is_manager = { BOOL = true }
+    # explicit manager field for root (no parent)
+    manager = { S = "" }
   })
   depends_on = [aws_dynamodb_table.user_tree]
   lifecycle {

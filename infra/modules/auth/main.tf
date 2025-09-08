@@ -1,7 +1,7 @@
 # Cognito pools, groups, roles
 
 resource "aws_cognito_user_pool" "this" {
-  name                     = "${terraform.workspace}-${var.stack_id}-user-pool"
+  name                     = "${terraform.workspace}-user-pool"
   auto_verified_attributes = ["email"]
   admin_create_user_config {
     allow_admin_create_user_only = true
@@ -28,7 +28,7 @@ resource "aws_cognito_user_pool" "this" {
 }
 
 resource "aws_cognito_user_pool_client" "spa" {
-  name                                 = "${terraform.workspace}-${var.stack_id}-spa-client"
+  name                                 = "${terraform.workspace}-spa-client"
   user_pool_id                         = aws_cognito_user_pool.this.id
   generate_secret                      = false
   allowed_oauth_flows                  = ["implicit"]
@@ -60,14 +60,14 @@ resource "aws_cognito_user" "admin" {
 
 resource "aws_cognito_user_group" "employees" {
   user_pool_id = aws_cognito_user_pool.this.id
-  name         = "${terraform.workspace}-${var.stack_id}-employees"
+  name         = "${terraform.workspace}-employees"
   description  = "Read-only employees"
   precedence   = 10
 }
 
 resource "aws_cognito_user_group" "managers" {
   user_pool_id = aws_cognito_user_pool.this.id
-  name         = "${terraform.workspace}-${var.stack_id}-managers"
+  name         = "${terraform.workspace}-managers"
   description  = "Administrators of employee hierarchy"
   precedence   = 5
 }
@@ -80,7 +80,7 @@ resource "aws_cognito_user_in_group" "admin_manager" {
 
 # Hosted UI Domain for Cognito
 resource "aws_cognito_user_pool_domain" "this" {
-  domain       = "${terraform.workspace}-${var.stack_id}"
+  domain       = terraform.workspace
   user_pool_id = aws_cognito_user_pool.this.id
 }
 
@@ -89,7 +89,7 @@ resource "aws_cognito_user_pool_domain" "this" {
 data "aws_region" "current" {}
 resource "aws_cognito_identity_pool" "this" {
   count                            = var.enable_identity_pool ? 1 : 0
-  identity_pool_name               = "${terraform.workspace}-${var.stack_id}-identity-pool"
+  identity_pool_name               = "${terraform.workspace}-identity-pool"
   allow_unauthenticated_identities = false
 
   cognito_identity_providers {
@@ -101,7 +101,7 @@ resource "aws_cognito_identity_pool" "this" {
 
 resource "aws_iam_role" "authenticated" {
   count = var.enable_identity_pool ? 1 : 0
-  name  = "${terraform.workspace}-${var.stack_id}-authenticated-role"
+  name  = "${terraform.workspace}-authenticated-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -124,7 +124,7 @@ resource "aws_iam_role" "authenticated" {
 
 resource "aws_iam_role_policy" "auth_session_tags" {
   count = var.enable_identity_pool ? 1 : 0
-  name  = "${terraform.workspace}-${var.stack_id}-auth-tags"
+  name  = "${terraform.workspace}-auth-tags"
   role  = aws_iam_role.authenticated[0].id
   policy = jsonencode({
     Version = "2012-10-17"

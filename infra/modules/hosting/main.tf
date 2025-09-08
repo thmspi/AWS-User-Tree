@@ -5,23 +5,13 @@ data "aws_caller_identity" "current" {}
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
-resource "random_id" "log_bucket_suffix" {
-  count       = var.enable_logging ? 1 : 0
-  byte_length = 4
-}
 
 resource "aws_s3_bucket" "spa" {
-  bucket        = "${terraform.workspace}-${var.stack_id}-spa-${random_id.bucket_suffix.hex}"
+  bucket        = "${terraform.workspace}-spa-${random_id.bucket_suffix.hex}"
   tags          = var.tags
   force_destroy = true
 }
 
-// Log bucket for CloudFront access logs
-resource "aws_s3_bucket" "log" {
-  count  = var.enable_logging ? 1 : 0
-  bucket = "${terraform.workspace}-${var.stack_id}-spa-logs-${random_id.log_bucket_suffix[0].hex}"
-  tags   = var.tags
-}
 
 resource "aws_s3_bucket_ownership_controls" "spa" {
   bucket = aws_s3_bucket.spa.id
@@ -30,60 +20,14 @@ resource "aws_s3_bucket_ownership_controls" "spa" {
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "log" {
-  count  = var.enable_logging ? 1 : 0
-  bucket = aws_s3_bucket.log[0].id
-  rule {
-    object_ownership = "BucketOwnerEnforced"
-  }
-}
-
-resource "aws_s3_bucket_policy" "log_policy" {
-  count  = var.enable_logging ? 1 : 0
-  bucket = aws_s3_bucket.log[0].id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = { Service = "cloudfront.amazonaws.com" }
-        Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.log[0].arn}/*"
-        Condition = {
-          StringEquals = {
-            "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
-          }
-        }
-      }
-    ]
-  })
-}
 
 
 
-# Enable versioning on the log bucket
-resource "aws_s3_bucket_versioning" "log" {
-  count  = var.enable_logging ? 1 : 0
-  bucket = aws_s3_bucket.log[0].id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
 
-# Apply server-side encryption to the log bucket
-resource "aws_s3_bucket_server_side_encryption_configuration" "log" {
-  count  = var.enable_logging ? 1 : 0
-  bucket = aws_s3_bucket.log[0].id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
+
 
 resource "aws_cloudfront_origin_access_control" "spa_oac" {
-  name                              = "${terraform.workspace}-${var.stack_id}-spa-oac"
+  name                              = "${terraform.workspace}-spa-oac"
   description                       = "Origin Access Control for SPA bucket"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -102,14 +46,14 @@ resource "aws_cloudfront_distribution" "spa" {
   }
 
   default_cache_behavior {
-    allowed_methods          = ["GET", "HEAD", "OPTIONS"]
-    cached_methods           = ["GET", "HEAD"]
-    target_origin_id         = "spaS3Origin"
-    viewer_protocol_policy   = "redirect-to-https"
-    # zero TTL in dev to always fetch fresh HTML
-    min_ttl     = var.stack_id == "dev" ? 0 : 0
-    default_ttl = var.stack_id == "dev" ? 0 : 86400
-    max_ttl     = var.stack_id == "dev" ? 0 : 31536000
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "spaS3Origin"
+    viewer_protocol_policy = "redirect-to-https"
+    # TTL settings: zero in dev workspace, longer in others
+    min_ttl     = 0
+    default_ttl = terraform.workspace == "dev" ? 0 : 86400
+    max_ttl     = terraform.workspace == "dev" ? 0 : 31536000
     # required when not using cache_policy_id
     forwarded_values {
       query_string = false
@@ -151,15 +95,15 @@ resource "aws_s3_bucket_policy" "spa_policy" {
 
 # Upload and deploy dashboard HTML with auto-invalidation
 resource "aws_s3_object" "dashboard_html" {
-  bucket        = aws_s3_bucket.spa.bucket
-  key           = "dashboard.html"
-  content       = templatefile(
-                    "${path.module}/../../web/dashboard.html.tpl",
-                    {
-                      api_endpoint = var.dashboard_api_endpoint,
-                      logout_url   = var.dashboard_logout_url
-                    }
-                  )
+  bucket = aws_s3_bucket.spa.bucket
+  key    = "dashboard.html"
+  content = templatefile(
+    "${path.module}/../../web/dashboard.html.tpl",
+    {
+      api_endpoint = var.dashboard_api_endpoint,
+      logout_url   = var.dashboard_logout_url
+    }
+  )
   content_type  = "text/html"
   cache_control = "max-age=31536000"
 }
