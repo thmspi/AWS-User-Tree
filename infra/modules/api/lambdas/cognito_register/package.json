@@ -1,0 +1,8 @@
+{
+  "name": "cognito_register_lambda",
+  "version": "1.0.0",
+  "description": "Register user in Cognito and attach groups",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.500.0"
+  }
+}

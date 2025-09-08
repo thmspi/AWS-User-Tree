@@ -1,0 +1,97 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "DynamoDBUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:CreateTable",
+				"dynamodb:DeleteTable",
+				"dynamodb:DescribeTable",
+				"dynamodb:ListTables",
+				"dynamodb:PutItem",
+				"dynamodb:GetItem",
+				"dynamodb:UpdateItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:Scan",
+				"dynamodb:Query",
+				"dynamodb:TagResource",
+				"dynamodb:UntagResource",
+				"dynamodb:DescribeContinuousBackups",
+				"dynamodb:DescribeTimeToLive",
+				"dynamodb:ListTagsOfResource"
+			],
+			"Resource": [
+				"arn:aws:dynamodb:*:*:table/*-user-tree",
+				"arn:aws:dynamodb:eu-west-3:*:table/*"
+			]
+		},
+		{
+			"Sid": "LambdaPerFunction",
+			"Effect": "Allow",
+			"Action": [
+				"lambda:CreateFunction",
+				"lambda:DeleteFunction",
+				"lambda:GetFunction",
+				"lambda:GetFunctionConfiguration",
+				"lambda:GetPolicy",
+				"lambda:InvokeFunction",
+				"lambda:UpdateFunctionCode",
+				"lambda:UpdateFunctionConfiguration",
+				"lambda:ListAliases"
+			],
+			"Resource": [
+				"arn:aws:lambda:*:*:function/*-user-tree",
+				"arn:aws:lambda:eu-west-3:*:function/*-*-user-tree",
+				"arn:aws:lambda:eu-west-3:044854093149:function:dev-dev-user-tree"
+			]
+		},
+		{
+			"Sid": "LambdaGlobal",
+			"Effect": "Allow",
+			"Action": [
+				"lambda:ListFunctions",
+				"lambda:ListVersionsByFunction",
+				"lambda:GetFunctionCodeSigningConfig",
+				"lambda:GetPolicy",
+				"lambda:AddPermission",
+				"lambda:RemovePermission"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "HTTPApiUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"apigateway:GET",
+				"apigateway:DELETE",
+				"apigateway:POST",
+				"apigateway:PUT"
+			],
+			"Resource": [
+				"arn:aws:apigateway:eu-west-3::/apis",
+				"arn:aws:apigateway:eu-west-3::/apis/*"
+			]
+		},
+		{
+			"Sid": "IAMforLambda",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreateRole",
+				"iam:DeleteRole",
+				"iam:GetRole",
+				"iam:ListRolePolicies",
+				"iam:ListAttachedRolePolicies",
+				"iam:ListInstanceProfilesForRole",
+				"iam:PutRolePolicy",
+				"iam:GetRolePolicy",
+				"iam:DeleteRolePolicy",
+				"iam:PassRole"
+			],
+			"Resource": [
+				"arn:aws:iam::044854093149:role/dev-dev-lambda-exec-role",
+				"arn:aws:iam::*:role/*"
+			]
+		}
+	]
+}

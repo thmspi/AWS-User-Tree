@@ -1,0 +1,8 @@
+{
+  "name": "user_tree_lambda",
+  "version": "1.0.0",
+  "description": "User Tree Lambda using AWS SDK v3",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.500.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "fetch_team_lambda",
+  "version": "1.0.0",
+  "description": "Fetch Team Lambda using AWS SDK v3",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.500.0",
+    "@aws-sdk/lib-dynamodb": "^3.500.0"
+  }
+}
