@@ -66,31 +66,10 @@
       <input type="password" id="password" placeholder="Password" style="padding:0.5em;width:250px;" />
       <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
       <div id="signin-message" style="color:red;"></div>
-      <a href="#" id="forgot-link" style="font-size:0.9rem;color:var(--color-secondary);">Forgot password?</a>
-     </div>
-    <!-- Forgot password workflow -->
-    <div id="forgot-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
-      <h2>Reset Password</h2>
-      <input type="text" id="forgot-username" placeholder="Username" style="padding:0.5em;width:250px;" />
-      <button id="send-code-btn" style="padding:0.5em 1em;">Send Code</button>
-      <div id="forgot-message" style="color:red;"></div>
-      <div id="confirm-reset-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
-        <input type="text" id="reset-code" placeholder="Verification Code" style="padding:0.5em;width:250px;" />
-        <input type="password" id="reset-new-password" placeholder="New Password" style="padding:0.5em;width:250px;" />
-        <button id="confirm-reset-btn" style="padding:0.5em 1em;">Confirm Reset</button>
-        <div id="reset-message" style="color:red;"></div>
-      </div>
     </div>
-    <!-- New password challenge workflow -->
-    <div id="new-password-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
-      <h2>Set New Password</h2>
-      <input type="password" id="new-password" placeholder="New Password" style="padding:0.5em;width:250px;" />
-      <input type="password" id="new-password-confirm" placeholder="Confirm Password" style="padding:0.5em;width:250px;" />
-      <button id="new-password-btn" style="padding:0.5em 1em;">Set Password</button>
-      <div id="newpass-message" style="color:red;"></div>
-    </div>
-  </main>
-  <script>
+    <!-- Reset-password workflow removed per request -->
+   </main>
+   <script>
     // Cognito configuration
     const poolData = {
       UserPoolId: '${user_pool_id}',
@@ -132,28 +111,6 @@
         onFailure: err => document.getElementById('newpass-message').textContent = err.message
       });
     });
-    // Forgot password flow
-    document.getElementById('forgot-link').addEventListener('click', e => {
-      e.preventDefault();
-      document.querySelector('.login-container').style.display = 'none';
-      document.getElementById('forgot-container').style.display = 'flex';
-    });
-    document.getElementById('send-code-btn').addEventListener('click', () => {
-      const uname = document.getElementById('forgot-username').value;
-      cognitoUserGlobal = new AmazonCognitoIdentity.CognitoUser({ Username: uname, Pool: userPool });
-      cognitoUserGlobal.forgotPassword({
-        onSuccess: () => document.getElementById('confirm-reset-container').style.display = 'flex',
-        onFailure: err => document.getElementById('forgot-message').textContent = err.message
-      });
-    });
-    document.getElementById('confirm-reset-btn').addEventListener('click', () => {
-      const code = document.getElementById('reset-code').value;
-      const newPass = document.getElementById('reset-new-password').value;
-      cognitoUserGlobal.confirmPassword(code, newPass, {
-        onSuccess: () => window.location.reload(),
-        onFailure: err => document.getElementById('reset-message').textContent = err.message
-      });
-    });
-  </script>
-</body>
-</html>
+   </script>
+ </body>
+ </html>
