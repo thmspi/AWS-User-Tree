@@ -332,13 +332,10 @@
     const cognitoUserGlobal = new AmazonCognitoIdentity.CognitoUser({ Username: currentUser, Pool: userPool });
     // Verify email button handler
     document.getElementById('verify-email').addEventListener('click', () => {
-      cognitoUserGlobal.getAttributeVerificationCode(
-        { attributeName: 'email' },
-        {
-          onSuccess: () => document.getElementById('verify-container').style.display = 'inline-block',
-          onFailure: err => document.getElementById('verify-message').textContent = err.message
-        }
-      );
+      cognitoUserGlobal.getAttributeVerificationCode({
+        onSuccess: () => document.getElementById('verify-container').style.display = 'inline-block',
+        onFailure: err => document.getElementById('verify-message').textContent = err.message
+      });
     });
     // Confirm code handler
     document.getElementById('confirm-verify').addEventListener('click', () => {
