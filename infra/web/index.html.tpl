@@ -48,7 +48,7 @@
     }
   </style>
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/5.2.4/amazon-cognito-identity.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5.2.7/dist/amazon-cognito-identity.min.js"></script>
   <script>
     // Set AWS region for Cognito operations
     AWS.config.region = '${aws_region}';
