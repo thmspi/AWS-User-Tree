@@ -67,7 +67,6 @@
       <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
       <div id="signin-message" style="color:red;"></div>
       <a href="#" id="forgot-link" style="font-size:0.9rem;color:var(--color-secondary);">Forgot password?</a>
-      <a href="#" id="signup-link" style="font-size:0.9rem;color:var(--color-secondary); margin-left:1em;">Sign up</a>
      </div>
     <!-- Forgot password workflow -->
     <div id="forgot-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
@@ -86,26 +85,9 @@
     <div id="new-password-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
       <h2>Set New Password</h2>
       <input type="password" id="new-password" placeholder="New Password" style="padding:0.5em;width:250px;" />
+      <input type="password" id="new-password-confirm" placeholder="Confirm Password" style="padding:0.5em;width:250px;" />
       <button id="new-password-btn" style="padding:0.5em 1em;">Set Password</button>
       <div id="newpass-message" style="color:red;"></div>
-    </div>
-    <!-- Signup workflow -->
-    <div id="signup-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
-      <h2>Create Account</h2>
-      <input type="text" id="signup-username" placeholder="Username" style="padding:0.5em;width:250px;" />
-      <input type="text" id="signup-email" placeholder="Email" style="padding:0.5em;width:250px;" />
-      <input type="password" id="signup-password" placeholder="Password" style="padding:0.5em;width:250px;" />
-      <input type="password" id="signup-confirm-password" placeholder="Confirm Password" style="padding:0.5em;width:250px;" />
-      <button id="signup-btn" style="padding:0.5em 1em;background:var(--color-manager);color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign Up</button>
-      <div id="signup-message" style="color:red;"></div>
-    </div>
-    <!-- Email verification after signup -->
-    <div id="verify-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
-      <h2>Verify Email</h2>
-      <input type="text" id="verify-username" placeholder="Username" style="padding:0.5em;width:250px;" />
-      <input type="text" id="verification-code" placeholder="Verification Code" style="padding:0.5em;width:250px;" />
-      <button id="verify-btn" style="padding:0.5em 1em;background:var(--color-manager);color:#fff;border:none;border-radius:4px;cursor:pointer;">Verify</button>
-      <div id="verify-message" style="color:red;"></div>
     </div>
   </main>
   <script>
@@ -139,8 +121,13 @@
     });
     // New password challenge
     document.getElementById('new-password-btn').addEventListener('click', () => {
-      const newPass = document.getElementById('new-password').value;
-      cognitoUserGlobal.completeNewPasswordChallenge(newPass, {}, {
+      const pass = document.getElementById('new-password').value;
+      const confirm = document.getElementById('new-password-confirm').value;
+      if (pass !== confirm) {
+        document.getElementById('newpass-message').textContent = 'Passwords do not match';
+        return;
+      }
+      cognitoUserGlobal.completeNewPasswordChallenge(pass, {}, {
         onSuccess: result => window.location.reload(),
         onFailure: err => document.getElementById('newpass-message').textContent = err.message
       });
@@ -165,36 +152,6 @@
       cognitoUserGlobal.confirmPassword(code, newPass, {
         onSuccess: () => window.location.reload(),
         onFailure: err => document.getElementById('reset-message').textContent = err.message
-      });
-    });
-    // Switch between views
-    document.getElementById('signup-link').addEventListener('click', e => { e.preventDefault();
-      document.querySelector('.login-container').style.display='none';
-      document.getElementById('signup-container').style.display='flex';
-    });
-    // Sign up
-    document.getElementById('signup-btn').addEventListener('click', () => {
-      const u = document.getElementById('signup-username').value;
-      const e = document.getElementById('signup-email').value;
-      const p = document.getElementById('signup-password').value;
-      const cp = document.getElementById('signup-confirm-password').value;
-      if (p !== cp) { document.getElementById('signup-message').textContent='Passwords do not match'; return; }
-      userPool.signUp(u, p, [{ Name:'email', Value:e }], null, (err, data) => {
-        if (err) { document.getElementById('signup-message').textContent=err.message; return; }
-        document.getElementById('signup-container').style.display='none';
-        document.getElementById('verify-username').value = u;
-        document.getElementById('verify-container').style.display='flex';
-      });
-    });
-    // Verify email
-    document.getElementById('verify-btn').addEventListener('click', () => {
-      const u = document.getElementById('verify-username').value;
-      const code = document.getElementById('verification-code').value;
-      const userData = { Username:u, Pool:userPool };
-      const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
-      cognitoUser.confirmRegistration(code, true, (err, data) => {
-        if (err) { document.getElementById('verify-message').textContent=err.message; return; }
-        window.location.reload();
       });
     });
   </script>

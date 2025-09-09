@@ -150,7 +150,7 @@
       outline: 2px solid var(--color-main);
     }
     /* logout link styling */
-    #logout {
+    .logout {
       margin-left: 0.5em;
       padding: 0.5em 1em;
       background-color: #4b0606;
@@ -159,7 +159,7 @@
       text-decoration: none;
       transition: background-color 0.2s ease;
     }
-    #logout:hover {
+    .logout:hover {
       background-color: red;
     }
     button:focus, input:focus, select:focus, textarea:focus {
@@ -175,7 +175,8 @@
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">
-      <a href="${logout_url}" id="logout" style="color:#fff; text-decoration:none;">Logout</a>
+      <a href="${logout_url}" class="logout">Logout</a>
+      <button id="verify-email" style="display:none; margin-left:0.5em; padding:0.5em 1em; background:var(--color-main); color:#fff; border:none; border-radius:4px; cursor:pointer;">Verify Email</button>
     </div>
   </header>
   <div id="tree-container"></div>
@@ -313,6 +314,21 @@
      if (toggleBtn) toggleBtn.addEventListener('click', () => {
        document.getElementById('slide-menu').classList.toggle('open');
      });
+    // show verify-email button if email not verified
+    const hashParams = new URLSearchParams(window.location.hash.substr(1));
+    const idToken = hashParams.get('id_token');
+    if (idToken) {
+      const payload = parseJwt(idToken);
+      if (!payload['email_verified']) {
+        // remind user to verify email
+        alert('Please verify your email or you won\'t be able to reset your password if needed.');
+        const btn = document.getElementById('verify-email');
+        btn.style.display = 'inline-block';
+        btn.addEventListener('click', () => {
+          alert('A verification email has been sent. Please check your inbox.');
+        });
+      }
+    }
     });
     async function loadTree() {
       try {
