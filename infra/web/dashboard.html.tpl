@@ -187,7 +187,7 @@
   <div id="tree-container"></div>
   <!-- sliding manager menu (hidden by default; shown only for managers) -->
   <div id="slide-menu" style="display:none;">
-    <button id="menu-toggle">&#x25C0;</button>
+  <button id="menu-toggle" style="display:none;">&#x25C0;</button>
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
       <button id="create-group">Manage Teams</button>
@@ -339,7 +339,22 @@
         try {
           const menuEl = document.getElementById('slide-menu');
           const toggleEl = document.getElementById('menu-toggle');
-          const isManager = !!data.is_manager && !!currentUser;
+          // call backend to verify manager status from DynamoDB
+          let apiIsManager = false;
+          if (currentUser) {
+            try {
+              const chk = await fetch(apiEndpoint + '/is_manager?user=' + encodeURIComponent(currentUser));
+              if (chk.ok) {
+                const json = await chk.json();
+                apiIsManager = !!json.is_manager;
+              } else {
+                console.warn('is_manager check returned', chk.status);
+              }
+            } catch (e) {
+              console.warn('Error calling is_manager endpoint', e);
+            }
+          }
+          const isManager = !!data.is_manager && !!currentUser && apiIsManager;
           if (isManager) {
             if (menuEl) menuEl.style.display = 'block';
             if (toggleEl) toggleEl.style.display = 'block';

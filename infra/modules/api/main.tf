@@ -399,6 +399,31 @@ resource "aws_apigatewayv2_integration" "manage_team" {
   integration_uri        = aws_lambda_function.manage_team.invoke_arn
   payload_format_version = "2.0"
 }
+// Package and deploy is_manager Lambda
+resource "archive_file" "is_manager_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/is_manager"
+  output_path = "${path.module}/is_manager.zip"
+}
+resource "aws_lambda_function" "is_manager" {
+  filename         = archive_file.is_manager_zip.output_path
+  source_code_hash = archive_file.is_manager_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-is-manager"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = {
+      USER_TABLE = var.table_name
+    }
+  }
+  depends_on = [archive_file.is_manager_zip]
+}
+// CloudWatch log group for is_manager Lambda
+resource "aws_cloudwatch_log_group" "is_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.is_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Route for creating a team
 resource "aws_apigatewayv2_route" "post_teams" {
   api_id    = aws_apigatewayv2_api.http.id
@@ -423,6 +448,19 @@ resource "aws_apigatewayv2_route" "delete_user" {
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "DELETE /users/{username}"
   target    = "integrations/${aws_apigatewayv2_integration.delete_user.id}"
+}
+// Integration for is_manager
+resource "aws_apigatewayv2_integration" "is_manager" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.is_manager.invoke_arn
+  payload_format_version = "2.0"
+}
+// Route for GET /is_manager and optional path /is_manager/{username}
+resource "aws_apigatewayv2_route" "get_is_manager" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "GET /is_manager"
+  target    = "integrations/${aws_apigatewayv2_integration.is_manager.id}"
 }
 // Route for switch_manager
 resource "aws_apigatewayv2_route" "post_switch_manager" {
@@ -507,6 +545,14 @@ resource "aws_lambda_permission" "switch_manager" {
   statement_id  = "AllowSwitchManagerInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.switch_manager.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for is_manager
+resource "aws_lambda_permission" "is_manager" {
+  statement_id  = "AllowIsManagerInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.is_manager.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }
