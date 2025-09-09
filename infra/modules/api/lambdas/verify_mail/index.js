@@ -11,9 +11,10 @@ const cognito = new AWS.CognitoIdentityServiceProvider();
 
 const USER_POOL_ID = process.env.USER_POOL_ID;
 const CORS_HEADERS = {
+  'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'POST,OPTIONS'
 };
 
 exports.handler = async function(event) {
