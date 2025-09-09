@@ -87,6 +87,11 @@ resource "aws_lambda_function" "user_tree" {
   }
   depends_on = [aws_iam_role_policy.lambda_dynamo, archive_file.user_tree_zip]
 }
+// CloudWatch log group for user_tree Lambda
+resource "aws_cloudwatch_log_group" "user_tree_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.user_tree.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy fetch_team Lambda
 resource "archive_file" "fetch_team_zip" {
   type        = "zip"
@@ -106,6 +111,11 @@ resource "aws_lambda_function" "fetch_team" {
     }
   }
   depends_on = [archive_file.fetch_team_zip]
+}
+// CloudWatch log group for fetch_team Lambda
+resource "aws_cloudwatch_log_group" "fetch_team_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.fetch_team.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy fetch_manager Lambda
 resource "archive_file" "fetch_manager_zip" {
@@ -127,6 +137,11 @@ resource "aws_lambda_function" "fetch_manager" {
   }
   depends_on = [archive_file.fetch_manager_zip]
 }
+// CloudWatch log group for fetch_manager Lambda
+resource "aws_cloudwatch_log_group" "fetch_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.fetch_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy checkavailability Lambda
 resource "archive_file" "checkavailability_zip" {
   type        = "zip"
@@ -145,6 +160,11 @@ resource "aws_lambda_function" "checkavailability" {
   }
   depends_on = [archive_file.checkavailability_zip, aws_iam_role_policy.lambda_cognito]
 }
+// CloudWatch log group for checkavailability Lambda
+resource "aws_cloudwatch_log_group" "checkavailability_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.checkavailability.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy cognito_register Lambda
 resource "archive_file" "cognito_register_zip" {
   type        = "zip"
@@ -162,6 +182,11 @@ resource "aws_lambda_function" "cognito_register" {
     variables = { USER_POOL_ID = var.user_pool_id }
   }
   depends_on = [archive_file.cognito_register_zip, aws_iam_role_policy.lambda_cognito]
+}
+// CloudWatch log group for cognito_register Lambda
+resource "aws_cloudwatch_log_group" "cognito_register_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.cognito_register.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy dynamo_register Lambda
 resource "archive_file" "dynamo_register_zip" {
@@ -184,6 +209,11 @@ resource "aws_lambda_function" "dynamo_register" {
   }
   depends_on = [archive_file.dynamo_register_zip]
 }
+// CloudWatch log group for dynamo_register Lambda
+resource "aws_cloudwatch_log_group" "dynamo_register_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.dynamo_register.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy manage_team Lambda
 resource "archive_file" "manage_team_zip" {
   type        = "zip"
@@ -201,6 +231,11 @@ resource "aws_lambda_function" "manage_team" {
     variables = { TEAMS_TABLE = var.teams_table_name }
   }
   depends_on = [archive_file.manage_team_zip]
+}
+// CloudWatch log group for manage_team Lambda
+resource "aws_cloudwatch_log_group" "manage_team_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.manage_team.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy delete_user Lambda
 resource "archive_file" "delete_user_zip" {
@@ -223,6 +258,11 @@ resource "aws_lambda_function" "delete_user" {
   }
   depends_on = [archive_file.delete_user_zip]
 }
+// CloudWatch log group for delete_user Lambda
+resource "aws_cloudwatch_log_group" "delete_user_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.delete_user.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy switch_manager Lambda
 resource "archive_file" "switch_manager_zip" {
   type        = "zip"
@@ -242,6 +282,11 @@ resource "aws_lambda_function" "switch_manager" {
     }
   }
   depends_on = [archive_file.switch_manager_zip]
+}
+// CloudWatch log group for switch_manager Lambda
+resource "aws_cloudwatch_log_group" "switch_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.switch_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Attach basic execution policy so Lambda can emit logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {

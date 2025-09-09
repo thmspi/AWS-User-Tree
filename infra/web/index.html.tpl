@@ -47,7 +47,12 @@
       outline: 2px solid var(--color-main);
     }
   </style>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/5.2.4/amazon-cognito-identity.min.js"></script>
+  <script>
+    // Set AWS region for Cognito operations
+    AWS.config.region = '${aws_region}';
+  </script>
 </head>
 <body>
   <div class="logo-container" style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">

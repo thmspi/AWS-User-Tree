@@ -22,3 +22,9 @@ variable "user_pool_id" {
   description = "Cognito User Pool ID"
   type        = string
 }
+
+variable "log_retention_in_days" {
+  description = "CloudWatch Log Group retention in days"
+  type        = number
+  default     = 14
+}

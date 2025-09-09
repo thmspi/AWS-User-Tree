@@ -101,6 +101,7 @@ resource "aws_s3_object" "index" {
       login_url    = local.login_url
       user_pool_id = module.auth.user_pool_id
       client_id    = module.auth.spa_client_id
+      aws_region   = var.aws_region
     }
   )
   content_type = "text/html"
