@@ -29,10 +29,12 @@ provider "aws" {
 // Instantiate Hosting module (S3 + CloudFront + OAC)
 module "hosting" {
   source = "./modules/hosting"
-  # stack_id removed as not needed
   tags                   = var.tags
   dashboard_api_endpoint = local.api_endpoint
   dashboard_logout_url   = local.logout_url
+  region                 = var.aws_region
+  user_pool_id           = module.auth.user_pool_id
+  client_id              = module.auth.spa_client_id
 }
 
 // Instantiate Auth module (Cognito User + Identity Pools)
@@ -117,7 +119,10 @@ resource "aws_s3_object" "dashboard" {
     {
       login_url    = local.login_url,
       logout_url   = local.logout_url,
-      api_endpoint = local.api_endpoint
+      api_endpoint = local.api_endpoint,
+      user_pool_id = module.auth.user_pool_id,
+      client_id    = module.auth.spa_client_id,
+      region       = var.aws_region
     }
   )
   content_type = "text/html"

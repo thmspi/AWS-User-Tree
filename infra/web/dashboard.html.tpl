@@ -167,16 +167,28 @@
     }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <!-- AWS SDK and Cognito Identity SDK for email verification -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5.2.7/dist/amazon-cognito-identity.min.js"></script>
+  <script>
+    AWS.config.region = '${region}';
+  </script>
 </head>
 <body>
   <header>
     <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
-      <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
+      <img src="/static/tree.svg" alt="My Org Tree" style="height:32px;" />
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">
       <a href="${logout_url}" class="logout">Logout</a>
       <button id="verify-email" style="display:none; margin-left:0.5em; padding:0.5em 1em; background:var(--color-main); color:#fff; border:none; border-radius:4px; cursor:pointer;">Verify Email</button>
+      <!-- Email verification code form -->
+      <div id="verify-container" style="display:none; margin-left:0.5em;">
+        <input id="verify-code" type="text" placeholder="Enter code" style="padding:0.25em; width:100px;" />
+        <button id="confirm-verify" style="padding:0.25em 0.5em;">Confirm</button>
+        <span id="verify-message" style="color:red; margin-left:0.5em;"></span>
+      </div>
     </div>
   </header>
   <div id="tree-container"></div>
@@ -314,6 +326,26 @@
      if (toggleBtn) toggleBtn.addEventListener('click', () => {
        document.getElementById('slide-menu').classList.toggle('open');
      });
+    // Cognito email verification setup
+    const poolData = { UserPoolId: '${user_pool_id}', ClientId: '${client_id}' };
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    const cognitoUserGlobal = new AmazonCognitoIdentity.CognitoUser({ Username: currentUser, Pool: userPool });
+    // Verify email button handler
+    document.getElementById('verify-email').addEventListener('click', () => {
+      cognitoUserGlobal.getAttributeVerificationCode({
+        attributeName: 'email',
+        onSuccess: () => document.getElementById('verify-container').style.display = 'inline-block',
+        onFailure: err => document.getElementById('verify-message').textContent = err.message
+      });
+    });
+    // Confirm code handler
+    document.getElementById('confirm-verify').addEventListener('click', () => {
+      const code = document.getElementById('verify-code').value;
+      cognitoUserGlobal.verifyAttribute('email', code, {
+        onSuccess: () => alert('Email verified successfully'),
+        onFailure: err => document.getElementById('verify-message').textContent = err.message
+      });
+    });
     // show verify-email button if email not verified
     const hashParams = new URLSearchParams(window.location.hash.substr(1));
     const idToken = hashParams.get('id_token');

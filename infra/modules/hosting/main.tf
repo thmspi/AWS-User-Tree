@@ -100,8 +100,11 @@ resource "aws_s3_object" "dashboard_html" {
   content = templatefile(
     "${path.module}/../../web/dashboard.html.tpl",
     {
-      api_endpoint = var.dashboard_api_endpoint,
-      logout_url   = var.dashboard_logout_url
+      api_endpoint  = var.dashboard_api_endpoint
+      logout_url    = var.dashboard_logout_url
+      region         = var.region
+      user_pool_id  = var.user_pool_id
+      client_id     = var.client_id
     }
   )
   content_type  = "text/html"
