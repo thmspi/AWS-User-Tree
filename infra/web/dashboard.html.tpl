@@ -185,8 +185,8 @@
     </div>
   </header>
   <div id="tree-container"></div>
-  <!-- sliding manager menu -->
-  <div id="slide-menu">
+  <!-- sliding manager menu (hidden by default; shown only for managers) -->
+  <div id="slide-menu" style="display:none;">
     <button id="menu-toggle">&#x25C0;</button>
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
