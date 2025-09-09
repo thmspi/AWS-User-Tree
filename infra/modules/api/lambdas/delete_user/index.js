@@ -16,6 +16,17 @@ const ddb = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddb);
 
 exports.handler = async (event) => {
+  // handle CORS preflight
+  if (event.requestContext?.http?.method === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+      }
+    };
+  }
   const poolId = process.env.USER_POOL_ID;
   const table = process.env.TABLE_NAME;
   try {
