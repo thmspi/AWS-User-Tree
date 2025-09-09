@@ -1,276 +1,269 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "S3BucketLifecycleAndReplication",
-      "Effect": "Allow",
-      "Action": [
-        "s3:CreateBucket",
-        "s3:DeleteBucket",
-        "s3:ListBucket",
-        "s3:PutBucketPolicy",
-        "s3:GetBucketTagging",
-        "s3:GetBucketPolicy",
-        "s3:GetBucketAcl",
-        "s3:PutBucketAcl",
-        "s3:GetBucketCORS",
-        "s3:GetBucketWebsite",
-        "s3:GetAccelerateConfiguration",
-        "s3:GetBucketRequestPayment",
-        "s3:GetLifecycleConfiguration",
-        "s3:GetBucketLocation",
-        "s3:GetBucketVersioning",
-        "s3:PutBucketVersioning",
-        "s3:GetBucketLogging",
-        "s3:PutBucketLogging",
-        "s3:GetReplicationConfiguration",
-        "s3:GetEncryptionConfiguration",
-        "s3:GetBucketObjectLockConfiguration",
-        "s3:PutBucketTagging",
-        "s3:PutEncryptionConfiguration",
-        "s3:PutBucketOwnershipControls",
-        "s3:GetBucketOwnershipControls",
-        "s3:DeleteBucketPolicy"
-      ],
-      "Resource": "arn:aws:s3:::*-spa-*"
-    },
-    {
-      "Sid": "S3ObjectOperations",
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:GetObject",
-        "s3:GetObjectTagging"
-      ],
-      "Resource": "arn:aws:s3:::*-spa-*/*"
-    },
-    {
-      "Sid": "CloudFrontDistributions",
-      "Effect": "Allow",
-      "Action": [
-        "cloudfront:CreateDistribution",
-        "cloudfront:UpdateDistribution",
-        "cloudfront:GetDistribution",
-        "cloudfront:DeleteDistribution",
-        "cloudfront:ListDistributions",
-        "cloudfront:CreateOriginAccessControl",
-        "cloudfront:GetOriginAccessControl",
-        "cloudfront:DeleteOriginAccessControl",
-        "cloudfront:TagResource",
-        "cloudfront:ListTagsForResource",
-        "cloudfront:CreateInvalidation",
-        "cloudfront:UpdateOriginAccessControl"
-      ],
-      "Resource": [
-        "arn:aws:cloudfront::*:distribution/*",
-        "arn:aws:cloudfront::*:origin-access-control/*"
-      ]
-    },
-    {
-      "Sid": "ACMCertificates",
-      "Effect": "Allow",
-      "Action": [
-        "acm:RequestCertificate",
-        "acm:DeleteCertificate",
-        "acm:DescribeCertificate"
-      ],
-      "Resource": "arn:aws:acm:*:*:certificate/*"
-    },
-    {
-      "Sid": "CognitoUserPools",
-      "Effect": "Allow",
-      "Action": [
-        "cognito-idp:CreateUserPool",
-        "cognito-idp:DeleteUserPool",
-        "cognito-idp:DescribeUserPool",
-        "cognito-idp:ListUserPools",
-        "cognito-idp:CreateUserPoolDomain",
-        "cognito-idp:CreateGroup",
-        "cognito-idp:GetGroup",
-        "cognito-idp:DescribeUserPoolDomain",
-        "cognito-idp:DeleteGroup",
-        "cognito-idp:DeleteUserPoolDomain",
-        "cognito-idp:UpdateUserPoolClient",
-        "cognito-idp:AddCustomAttributes",
-        "cognito-idp:AdminUpdateUserAttributes",
-        "cognito-idp:AdminDeleteUserAttributes"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "CognitoUserPoolClients",
-      "Effect": "Allow",
-      "Action": [
-        "cognito-idp:CreateUserPoolClient",
-        "cognito-idp:DeleteUserPoolClient",
-        "cognito-idp:DescribeUserPoolClient",
-        "cognito-idp:ListUserPoolClients",
-        "cognito-idp:GetUserPoolMfaConfig",
-        "cognito-idp:AdminCreateUser",
-        "cognito-idp:AdminSetUserPassword",
-        "cognito-idp:AdminGetUser",
-        "cognito-idp:AdminDeleteUser",
-        "cognito-idp:AdminAddUserToGroup",
-        "cognito-idp:AdminListGroupsForUser",
-        "cognito-idp:AdminRemoveUserFromGroup"
-      ],
-      "Resource": [
-        "arn:aws:cognito-idp:*:*:userpool/*-user-pool/client/*-spa-client",
-        "arn:aws:cognito-idp:eu-west-3:*:userpool/eu-west-3*"
-      ]
-    },
-    {
-      "Sid": "CognitoIdentityPools",
-      "Effect": "Allow",
-      "Action": [
-        "cognito-identity:CreateIdentityPool",
-        "cognito-identity:DeleteIdentityPool",
-        "cognito-identity:DescribeIdentityPool",
-        "cognito-identity:ListIdentityPools",
-        "cognito-identity:SetIdentityPoolRoles",
-        "cognito-identity:GetIdentityPoolRoles"
-      ],
-      "Resource": [
-        "arn:aws:cognito-identity:*:*:identitypool/*-identity-pool",
-        "arn:aws:cognito-identity:eu-west-3:*:identitypool/*"
-      ]
-    },
-    {
-      "Sid": "IAMRoles",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:PassRole",
-        "iam:AttachRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:GetRole",
-        "iam:ListRolePolicies",
-        "iam:ListAttachedRolePolicies",
-        "iam:ListInstanceProfilesForRole",
-        "iam:PutRolePolicy",
-        "iam:GetRolePolicy",
-        "iam:DeleteRolePolicy"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:role/*-authenticated-role",
-        "arn:aws:iam::*:role/*-auth-tags",
-        "arn:aws:iam::044854093149:role/dev-dev-lambda-exec-role"
-      ]
-    },
-    {
-      "Sid": "LambdaPerFunction",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:CreateFunction",
-        "lambda:DeleteFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:GetPolicy",
-        "lambda:InvokeFunction",
-        "lambda:UpdateFunctionCode",
-        "lambda:UpdateFunctionConfiguration",
-        "lambda:ListAliases"
-      ],
-      "Resource": "arn:aws:lambda:*:*:function/*"
-    },
-    {
-      "Sid": "LambdaGlobal",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:ListFunctions",
-        "lambda:ListVersionsByFunction",
-        "lambda:GetFunctionCodeSigningConfig",
-        "lambda:GetPolicy",
-        "lambda:AddPermission",
-        "lambda:RemovePermission"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "DynamoDBUserTree",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:CreateTable",
-        "dynamodb:DeleteTable",
-        "dynamodb:DescribeTable",
-        "dynamodb:ListTables",
-        "dynamodb:PutItem",
-        "dynamodb:GetItem",
-        "dynamodb:UpdateItem",
-        "dynamodb:DeleteItem",
-        "dynamodb:Scan",
-        "dynamodb:Query",
-        "dynamodb:TagResource",
-        "dynamodb:UntagResource",
-        "dynamodb:DescribeContinuousBackups",
-        "dynamodb:DescribeTimeToLive",
-        "dynamodb:ListTagsOfResource"
-      ],
-      "Resource": [
-        "arn:aws:dynamodb:*:*:table/*-user-tree",
-        "arn:aws:dynamodb:eu-west-3:*:table/*"
-      ]
-    },
-    {
-      "Sid": "HTTPApiUserTree",
-      "Effect": "Allow",
-      "Action": [
-        "apigateway:GET",
-        "apigateway:DELETE",
-        "apigateway:POST",
-        "apigateway:PUT",
-        "apigateway:PATCH"
-      ],
-      "Resource": [
-        "arn:aws:apigateway:eu-west-3::/apis",
-        "arn:aws:apigateway:eu-west-3::/apis/*"
-      ]
-    },
-    {
-      "Sid": "CloudTrail",
-      "Effect": "Allow",
-      "Action": [
-        "cloudtrail:CreateTrail",
-        "cloudtrail:DeleteTrail",
-        "cloudtrail:DescribeTrails"
-      ],
-      "Resource": "arn:aws:cloudtrail:*:*:trail/*"
-    },
-    {
-      "Sid": "ConfigRules",
-      "Effect": "Allow",
-      "Action": [
-        "config:PutConfigRule",
-        "config:DeleteConfigRule",
-        "config:DescribeConfigRules"
-      ],
-      "Resource": "arn:aws:config:*:*:config-rule/config-rule-*"
-    },
-    {
-      "Sid": "CloudWatchLogs",
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:DeleteLogGroup",
-        "logs:CreateLogStream",
-        "logs:DeleteLogStream",
-        "logs:PutRetentionPolicy",
-        "logs:DescribeLogGroups",
-        "logs:ListTagsForResource"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "EventBridgeRules",
-      "Effect": "Allow",
-      "Action": [
-        "events:PutRule",
-        "events:DeleteRule",
-        "events:DescribeRule"
-      ],
-      "Resource": "arn:aws:events:*:*:rule/*"
-    }
-  ]
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "S3BucketLifecycleAndReplication",
+			"Effect": "Allow",
+			"Action": [
+				"s3:CreateBucket",
+				"s3:DeleteBucket",
+				"s3:ListBucket",
+				"s3:PutBucketPolicy",
+				"s3:GetBucketTagging",
+				"s3:GetBucketPolicy",
+				"s3:GetBucketAcl",
+				"s3:PutBucketAcl",
+				"s3:GetBucketCORS",
+				"s3:GetBucketWebsite",
+				"s3:GetAccelerateConfiguration",
+				"s3:GetBucketRequestPayment",
+				"s3:GetLifecycleConfiguration",
+				"s3:GetBucketLocation",
+				"s3:GetBucketVersioning",
+				"s3:PutBucketVersioning",
+				"s3:GetBucketLogging",
+				"s3:PutBucketLogging",
+				"s3:GetReplicationConfiguration",
+				"s3:GetEncryptionConfiguration",
+				"s3:GetBucketObjectLockConfiguration",
+				"s3:PutBucketTagging",
+				"s3:PutEncryptionConfiguration",
+				"s3:PutBucketOwnershipControls",
+				"s3:GetBucketOwnershipControls",
+				"s3:DeleteBucketPolicy"
+			],
+			"Resource": "arn:aws:s3:::*-spa-*"
+		},
+		{
+			"Sid": "S3ObjectOperations",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject",
+				"s3:DeleteObject",
+				"s3:GetObject",
+				"s3:GetObjectTagging"
+			],
+			"Resource": "arn:aws:s3:::*-spa-*/*"
+		},
+		{
+			"Sid": "CloudFrontDistributions",
+			"Effect": "Allow",
+			"Action": [
+				"cloudfront:CreateDistribution",
+				"cloudfront:UpdateDistribution",
+				"cloudfront:GetDistribution",
+				"cloudfront:DeleteDistribution",
+				"cloudfront:ListDistributions",
+				"cloudfront:CreateOriginAccessControl",
+				"cloudfront:GetOriginAccessControl",
+				"cloudfront:DeleteOriginAccessControl",
+				"cloudfront:TagResource",
+				"cloudfront:ListTagsForResource",
+				"cloudfront:CreateInvalidation",
+				"cloudfront:UpdateOriginAccessControl"
+			],
+			"Resource": [
+				"arn:aws:cloudfront::*:distribution/*",
+				"arn:aws:cloudfront::*:origin-access-control/*"
+			]
+		},
+		{
+			"Sid": "ACMCertificates",
+			"Effect": "Allow",
+			"Action": [
+				"acm:RequestCertificate",
+				"acm:DeleteCertificate",
+				"acm:DescribeCertificate"
+			],
+			"Resource": "arn:aws:acm:*:*:certificate/*"
+		},
+		{
+			"Sid": "CognitoUserPools",
+			"Effect": "Allow",
+			"Action": [
+				"cognito-idp:CreateUserPool",
+				"cognito-idp:DeleteUserPool",
+				"cognito-idp:DescribeUserPool",
+				"cognito-idp:ListUserPools",
+				"cognito-idp:CreateUserPoolDomain",
+				"cognito-idp:CreateGroup",
+				"cognito-idp:GetGroup",
+				"cognito-idp:DescribeUserPoolDomain",
+				"cognito-idp:DeleteGroup",
+				"cognito-idp:DeleteUserPoolDomain",
+				"cognito-idp:UpdateUserPoolClient",
+				"cognito-idp:AddCustomAttributes",
+				"cognito-idp:AdminUpdateUserAttributes",
+				"cognito-idp:AdminDeleteUserAttributes"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "CognitoUserPoolClients",
+			"Effect": "Allow",
+			"Action": [
+				"cognito-idp:CreateUserPoolClient",
+				"cognito-idp:DeleteUserPoolClient",
+				"cognito-idp:DescribeUserPoolClient",
+				"cognito-idp:ListUserPoolClients",
+				"cognito-idp:GetUserPoolMfaConfig",
+				"cognito-idp:AdminCreateUser",
+				"cognito-idp:AdminSetUserPassword",
+				"cognito-idp:AdminGetUser",
+				"cognito-idp:AdminDeleteUser",
+				"cognito-idp:AdminAddUserToGroup",
+				"cognito-idp:AdminListGroupsForUser",
+				"cognito-idp:AdminRemoveUserFromGroup"
+			],
+			"Resource": [
+				"arn:aws:cognito-idp:*:*:userpool/*-user-pool/client/*-spa-client",
+				"arn:aws:cognito-idp:eu-west-3:*:userpool/eu-west-3*"
+			]
+		},
+		{
+			"Sid": "CognitoIdentityPools",
+			"Effect": "Allow",
+			"Action": [
+				"cognito-identity:CreateIdentityPool",
+				"cognito-identity:DeleteIdentityPool",
+				"cognito-identity:DescribeIdentityPool",
+				"cognito-identity:ListIdentityPools",
+				"cognito-identity:SetIdentityPoolRoles",
+				"cognito-identity:GetIdentityPoolRoles"
+			],
+			"Resource": [
+				"arn:aws:cognito-identity:*:*:identitypool/*-identity-pool",
+				"arn:aws:cognito-identity:eu-west-3:*:identitypool/*"
+			]
+		},
+		{
+			"Sid": "IAMRoles",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreateRole",
+				"iam:DeleteRole",
+				"iam:PassRole",
+				"iam:AttachRolePolicy",
+				"iam:DetachRolePolicy",
+				"iam:GetRole",
+				"iam:ListRolePolicies",
+				"iam:ListAttachedRolePolicies",
+				"iam:ListInstanceProfilesForRole",
+				"iam:PutRolePolicy",
+				"iam:GetRolePolicy",
+				"iam:DeleteRolePolicy"
+			],
+			"Resource": [
+				"arn:aws:iam::*:role/*-authenticated-role",
+				"arn:aws:iam::*:role/*-auth-tags",
+				"arn:aws:iam::*:role/*-lambda-exec-role"
+			]
+		},
+		{
+			"Sid": "LambdaGlobal",
+			"Effect": "Allow",
+			"Action": [
+				"lambda:CreateFunction",
+				"lambda:DeleteFunction",
+				"lambda:GetFunction",
+				"lambda:GetFunctionConfiguration",
+				"lambda:GetPolicy",
+				"lambda:InvokeFunction",
+				"lambda:UpdateFunctionCode",
+				"lambda:UpdateFunctionConfiguration",
+				"lambda:ListAliases",
+				"lambda:ListFunctions",
+				"lambda:ListVersionsByFunction",
+				"lambda:GetFunctionCodeSigningConfig",
+				"lambda:GetPolicy",
+				"lambda:AddPermission",
+				"lambda:RemovePermission"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "DynamoDBUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:CreateTable",
+				"dynamodb:DeleteTable",
+				"dynamodb:DescribeTable",
+				"dynamodb:ListTables",
+				"dynamodb:PutItem",
+				"dynamodb:GetItem",
+				"dynamodb:UpdateItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:Scan",
+				"dynamodb:Query",
+				"dynamodb:TagResource",
+				"dynamodb:UntagResource",
+				"dynamodb:DescribeContinuousBackups",
+				"dynamodb:DescribeTimeToLive",
+				"dynamodb:ListTagsOfResource"
+			],
+			"Resource": [
+				"arn:aws:dynamodb:*:*:table/*-user-tree",
+				"arn:aws:dynamodb:eu-west-3:*:table/*"
+			]
+		},
+		{
+			"Sid": "HTTPApiUserTree",
+			"Effect": "Allow",
+			"Action": [
+				"apigateway:GET",
+				"apigateway:DELETE",
+				"apigateway:POST",
+				"apigateway:PUT",
+				"apigateway:PATCH"
+			],
+			"Resource": [
+				"arn:aws:apigateway:eu-west-3::/apis",
+				"arn:aws:apigateway:eu-west-3::/apis/*"
+			]
+		},
+		{
+			"Sid": "CloudTrail",
+			"Effect": "Allow",
+			"Action": [
+				"cloudtrail:CreateTrail",
+				"cloudtrail:DeleteTrail",
+				"cloudtrail:DescribeTrails"
+			],
+			"Resource": "arn:aws:cloudtrail:*:*:trail/*"
+		},
+		{
+			"Sid": "ConfigRules",
+			"Effect": "Allow",
+			"Action": [
+				"config:PutConfigRule",
+				"config:DeleteConfigRule",
+				"config:DescribeConfigRules"
+			],
+			"Resource": "arn:aws:config:*:*:config-rule/config-rule-*"
+		},
+		{
+			"Sid": "CloudWatchLogs",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:DeleteLogGroup",
+				"logs:CreateLogStream",
+				"logs:DeleteLogStream",
+				"logs:PutRetentionPolicy",
+				"logs:DescribeLogGroups",
+				"logs:ListTagsForResource"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "EventBridgeRules",
+			"Effect": "Allow",
+			"Action": [
+				"events:PutRule",
+				"events:DeleteRule",
+				"events:DescribeRule"
+			],
+			"Resource": "arn:aws:events:*:*:rule/*"
+		}
+	]
 }
