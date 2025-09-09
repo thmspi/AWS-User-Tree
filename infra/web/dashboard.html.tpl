@@ -106,8 +106,8 @@
       font-size: 14px;
       cursor: pointer;
     }
-    /* outline card on hover with main color */
-    .node > rect:hover {
+    /* outline card on hover (anywhere over the node) with main color */
+    .node:hover > rect {
       stroke: var(--color-main);
       stroke-width: 2px;
     }
@@ -432,8 +432,10 @@
           ])
           .enter().append('tspan')
             .attr('x', 0)
-            .attr('dy', (d,i) => i === 0 ? -(padding/2) : (padding))
+            .attr('dy', (d,i) => i === 0 ? -(padding/2) : (padding * 1.5))
             .style('font-size', (d,i) => i === 0 ? '14px' : '12px')
+            .style('font-style', (d,i) => i === 0 ? 'normal' : 'italic')
+            .style('opacity', (d,i) => i === 0 ? 1 : 0.9)
             .text(d => d);
         // on click, toggle detail popup
         node.on('click', function(event, d) {

@@ -44,7 +44,20 @@
       cursor: pointer;
     }
     button:hover, button:focus {
-      outline: 2px solid var(--color-main);
+      outline: none;
+    }
+    /* Sign-in button specific styles */
+    #signin-btn {
+      background-color: var(--color-black-secondary);
+      color: var(--color-text);
+      border: none;
+      transition : all 150ms ease-in;
+    }
+    #signin-btn:hover {
+      background-color: var(--color-main);
+    }
+    #signin-btn:focus {
+      outline: none;
     }
   </style>
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
@@ -61,7 +74,7 @@
   </div>
   <main>
     <div class="login-container" style="display:flex;flex-direction:column;align-items:center;gap:1em;">
-      <h1>Sign In</h1>
+      <h1>Authentification is required</h1>
       <input type="text" id="username" placeholder="Username" style="padding:0.5em;width:250px;" />
       <input type="password" id="password" placeholder="Password" style="padding:0.5em;width:250px;" />
       <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
