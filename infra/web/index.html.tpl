@@ -67,7 +67,14 @@
       <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
       <div id="signin-message" style="color:red;"></div>
     </div>
-    <!-- Reset-password workflow removed per request -->
+    <!-- New password challenge workflow (set permanent password) -->
+    <div id="new-password-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
+      <h2>Set New Password</h2>
+      <input type="password" id="new-password" placeholder="New Password" style="padding:0.5em;width:250px;" />
+      <input type="password" id="new-password-confirm" placeholder="Confirm Password" style="padding:0.5em;width:250px;" />
+      <button id="new-password-btn" style="padding:0.5em 1em;">Set Password</button>
+      <div id="newpass-message" style="color:red;"></div>
+    </div>
    </main>
    <script>
     // Cognito configuration
@@ -102,12 +109,26 @@
     document.getElementById('new-password-btn').addEventListener('click', () => {
       const pass = document.getElementById('new-password').value;
       const confirm = document.getElementById('new-password-confirm').value;
+      const msgEl = document.getElementById('newpass-message');
+      msgEl.textContent = '';
+      if (!pass || pass.length < 8) {
+        msgEl.textContent = 'Password must be at least 8 characters';
+        return;
+      }
       if (pass !== confirm) {
-        document.getElementById('newpass-message').textContent = 'Passwords do not match';
+        msgEl.textContent = 'Passwords do not match';
         return;
       }
       cognitoUserGlobal.completeNewPasswordChallenge(pass, {}, {
-        onSuccess: result => window.location.reload(),
+        onSuccess: result => {
+          try {
+            const idToken = result.getIdToken().getJwtToken();
+            window.location.href = '/dashboard.html#id_token=' + idToken;
+          } catch (e) {
+            // fallback: reload if token not available
+            window.location.reload();
+          }
+        },
         onFailure: err => document.getElementById('newpass-message').textContent = err.message
       });
     });
