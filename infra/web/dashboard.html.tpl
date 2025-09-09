@@ -389,36 +389,45 @@
       console.warn('Error while creating Cognito session from URL hash', e);
     }
 
-    // Verify email button handler (server-side) - call POST /verify_mail
+    // Verify email button handler (client-side): call Cognito SDK to send verification email
     (function() {
       const verifyBtn = document.getElementById('verify-email');
-      verifyBtn.addEventListener('click', async () => {
-        console.log('verify-email clicked (server-side) ', { currentUser });
+      verifyBtn.addEventListener('click', () => {
+        console.log('verify-email clicked (client-side)', { currentUser, cognitoUserGlobal });
         const msgEl = document.getElementById('verify-message');
         msgEl.textContent = '';
         if (!currentUser) {
           msgEl.textContent = 'No user info available. Please sign in.';
           return;
         }
+        if (!cognitoUserGlobal) {
+          msgEl.textContent = 'Cognito user not initialized.';
+          return;
+        }
         try {
-          const res = await fetch(apiEndpoint + '/verify_mail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: currentUser })
+          cognitoUserGlobal.getSession((err, session) => {
+            if (err || !session || !session.isValid()) {
+              console.warn('No valid session', err, session);
+              msgEl.textContent = 'No valid session. Please sign in and try again.';
+              return;
+            }
+            // Request verification code via Cognito hosted flow
+            cognitoUserGlobal.getAttributeVerificationCode({
+              onSuccess: () => {
+                document.getElementById('verify-container').style.display = 'inline-block';
+                msgEl.style.color = 'lightgreen';
+                msgEl.textContent = 'Verification email sent. Check your inbox.';
+                console.log('getAttributeVerificationCode onSuccess');
+              },
+              onFailure: failureErr => {
+                console.error('getAttributeVerificationCode onFailure', failureErr);
+                msgEl.textContent = (failureErr && failureErr.message) ? failureErr.message : 'Failed to send verification email';
+              }
+            });
           });
-          const body = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            console.error('verify_mail failed', res.status, body);
-            msgEl.textContent = body.error || ('Verification request failed: ' + res.status);
-            return;
-          }
-          // show input for confirmation code if desired (server sent code via email)
-          document.getElementById('verify-container').style.display = 'inline-block';
-          msgEl.style.color = 'lightgreen';
-          msgEl.textContent = 'Verification email sent. Check your inbox.';
-        } catch (err) {
-          console.error('Error calling verify_mail', err);
-          msgEl.textContent = 'Error sending verification request. See console.';
+        } catch (e) {
+          console.error('Error triggering getAttributeVerificationCode', e);
+          msgEl.textContent = 'Unexpected error; see console.';
         }
       });
     })();

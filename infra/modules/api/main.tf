@@ -189,29 +189,6 @@ resource "aws_cloudwatch_log_group" "cognito_register_logs" {
   name              = "/aws/lambda/${aws_lambda_function.cognito_register.function_name}"
   retention_in_days = var.log_retention_in_days
 }
-// Package and deploy verify_mail Lambda
-resource "archive_file" "verify_mail_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/lambdas/verify_mail"
-  output_path = "${path.module}/verify_mail.zip"
-}
-resource "aws_lambda_function" "verify_mail" {
-  filename         = archive_file.verify_mail_zip.output_path
-  source_code_hash = archive_file.verify_mail_zip.output_base64sha256
-  function_name    = "${terraform.workspace}-verify-mail"
-  handler          = "index.handler"
-  runtime          = "nodejs22.x"
-  role             = aws_iam_role.lambda_exec.arn
-  environment {
-    variables = { USER_POOL_ID = var.user_pool_id }
-  }
-  depends_on = [archive_file.verify_mail_zip, aws_iam_role_policy.lambda_cognito]
-}
-// CloudWatch log group for verify_mail Lambda
-resource "aws_cloudwatch_log_group" "verify_mail_logs" {
-  name              = "/aws/lambda/${aws_lambda_function.verify_mail.function_name}"
-  retention_in_days = var.log_retention_in_days
-}
 // Package and deploy dynamo_register Lambda
 resource "archive_file" "dynamo_register_zip" {
   type        = "zip"
@@ -365,13 +342,6 @@ resource "aws_apigatewayv2_integration" "cognito_register" {
   integration_uri        = aws_lambda_function.cognito_register.invoke_arn
   payload_format_version = "2.0"
 }
-// Integration for verify_mail
-resource "aws_apigatewayv2_integration" "verify_mail" {
-  api_id                 = aws_apigatewayv2_api.http.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.verify_mail.invoke_arn
-  payload_format_version = "2.0"
-}
 // Integration for dynamo_register
 resource "aws_apigatewayv2_integration" "dynamo_register" {
   api_id                 = aws_apigatewayv2_api.http.id
@@ -404,12 +374,6 @@ resource "aws_apigatewayv2_route" "post_cognito_register" {
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "POST /cognito_register"
   target    = "integrations/${aws_apigatewayv2_integration.cognito_register.id}"
-}
-// Route for verify_mail
-resource "aws_apigatewayv2_route" "post_verify_mail" {
-  api_id    = aws_apigatewayv2_api.http.id
-  route_key = "POST /verify_mail"
-  target    = "integrations/${aws_apigatewayv2_integration.verify_mail.id}"
 }
 // Route for dynamo_register
 resource "aws_apigatewayv2_route" "post_dynamo_register" {
@@ -515,14 +479,7 @@ resource "aws_lambda_permission" "cognito_register" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }
-// Permission for verify_mail
-resource "aws_lambda_permission" "verify_mail" {
-  statement_id  = "AllowVerifyMailInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.verify_mail.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
-}
+
 // Permission for manage_team
 resource "aws_lambda_permission" "manage_team" {
   statement_id  = "AllowManageTeamInvoke"
