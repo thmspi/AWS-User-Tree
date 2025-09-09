@@ -6,8 +6,8 @@
 //  - POST JSON body { "username": "..." }
 //  - or, if behind a Cognito authorizer, username will be taken from event.requestContext.authorizer.claims['cognito:username']
 
-const AWS = require('aws-sdk');
-const cognito = new AWS.CognitoIdentityServiceProvider();
+const { CognitoIdentityProviderClient, AdminUpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const cognito = new CognitoIdentityProviderClient({});
 
 const USER_POOL_ID = process.env.USER_POOL_ID;
 const CORS_HEADERS = {
@@ -20,12 +20,16 @@ const CORS_HEADERS = {
 exports.handler = async function(event) {
   try {
     console.log('verify_mail invoked', { envUserPool: !!USER_POOL_ID });
+    // Log incoming event for debugging
+    try { console.log('event:', JSON.stringify(event)); } catch (e) { console.log('event (non-serializable)'); }
 
     if (!USER_POOL_ID) {
+      const resp = { error: 'USER_POOL_ID env var not set' };
+      if (event && event.headers && (event.headers['x-debug'] === '1' || event.headers['X-Debug'] === '1')) resp._debug = { eventSample: event };
       return {
         statusCode: 500,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'USER_POOL_ID env var not set' })
+        body: JSON.stringify(resp)
       };
     }
 
@@ -46,10 +50,12 @@ exports.handler = async function(event) {
     }
 
     if (!username) {
+      const resp = { error: 'username not provided' };
+      if (event && event.headers && (event.headers['x-debug'] === '1' || event.headers['X-Debug'] === '1')) resp._debug = { eventSample: event };
       return {
         statusCode: 400,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'username not provided' })
+        body: JSON.stringify(resp)
       };
     }
 
@@ -62,28 +68,33 @@ exports.handler = async function(event) {
     };
 
     try {
-      console.log('Calling adminUpdateUserAttributes', { Username: username });
-      await cognito.adminUpdateUserAttributes(params).promise();
+      console.log('Calling AdminUpdateUserAttributes', { Username: username });
+      const cmd = new AdminUpdateUserAttributesCommand(params);
+      await cognito.send(cmd);
       return {
         statusCode: 200,
         headers: CORS_HEADERS,
         body: JSON.stringify({ ok: true, username })
       };
     } catch (err) {
-      console.error('adminUpdateUserAttributes failed', err);
-      const status = err && err.statusCode ? err.statusCode : 500;
+      console.error('AdminUpdateUserAttributes failed', err);
+      const status = err && err.$metadata && err.$metadata.httpStatusCode ? err.$metadata.httpStatusCode : 500;
+      const resp = { error: err && err.message ? err.message : 'unknown error', stack: err && err.stack ? err.stack : undefined };
+      if (event && event.headers && (event.headers['x-debug'] === '1' || event.headers['X-Debug'] === '1')) resp._debug = { eventSample: event };
       return {
         statusCode: status,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ error: err && err.message ? err.message : 'unknown error', stack: err && err.stack ? err.stack : undefined })
+        body: JSON.stringify(resp)
       };
     }
   } catch (topErr) {
     console.error('verify_mail top-level error', topErr);
+    const resp = { error: topErr.message, stack: topErr.stack };
+    if (event && event.headers && (event.headers['x-debug'] === '1' || event.headers['X-Debug'] === '1')) resp._debug = { eventSample: event };
     return {
       statusCode: 500,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: topErr.message, stack: topErr.stack })
+      body: JSON.stringify(resp)
     };
   }
 };
