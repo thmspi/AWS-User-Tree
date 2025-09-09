@@ -389,11 +389,11 @@
       console.warn('Error while creating Cognito session from URL hash', e);
     }
 
-    // Verify email button handler (client-side): call Cognito SDK to send verification email
+    // Verify email button handler (robust: check session, log, try SDK signatures)
     (function() {
       const verifyBtn = document.getElementById('verify-email');
       verifyBtn.addEventListener('click', () => {
-        console.log('verify-email clicked (client-side)', { currentUser, cognitoUserGlobal });
+        console.log('verify-email clicked', { currentUser, cognitoUserGlobal });
         const msgEl = document.getElementById('verify-message');
         msgEl.textContent = '';
         if (!currentUser) {
@@ -401,33 +401,73 @@
           return;
         }
         if (!cognitoUserGlobal) {
-          msgEl.textContent = 'Cognito user not initialized.';
+          msgEl.textContent = 'CognitoUser not initialized.';
           return;
         }
+
+        const callbacks = {
+          onSuccess: () => {
+            document.getElementById('verify-container').style.display = 'inline-block';
+            msgEl.textContent = '';
+            console.log('getAttributeVerificationCode: onSuccess');
+          },
+          onFailure: err => {
+            console.error('getAttributeVerificationCode: onFailure', err);
+            msgEl.textContent = (err && err.message) ? err.message : JSON.stringify(err);
+          }
+        };
+
+        // Ensure there's a valid session first. If getSession fails, the SDK often tries to call
+        // the callbacks and will throw if they're missing; we guard and present a helpful message.
         try {
           cognitoUserGlobal.getSession((err, session) => {
             if (err || !session || !session.isValid()) {
-              console.warn('No valid session', err, session);
-              msgEl.textContent = 'No valid session. Please sign in and try again.';
+              console.warn('getSession failed or no valid session', err, session);
+              msgEl.textContent = 'No valid local Cognito session - open the app through the sign-in flow and try again.';
               return;
             }
-            // Request verification code via Cognito hosted flow
-            cognitoUserGlobal.getAttributeVerificationCode({
-              onSuccess: () => {
-                document.getElementById('verify-container').style.display = 'inline-block';
-                msgEl.style.color = 'lightgreen';
-                msgEl.textContent = 'Verification email sent. Check your inbox.';
-                console.log('getAttributeVerificationCode onSuccess');
-              },
-              onFailure: failureErr => {
-                console.error('getAttributeVerificationCode onFailure', failureErr);
-                msgEl.textContent = (failureErr && failureErr.message) ? failureErr.message : 'Failed to send verification email';
+            // Build a bridge callback (some SDK variants expect a function callback)
+            const bridgeCallback = function(err, data) {
+              if (err) {
+                try { callbacks.onFailure(err); } catch (cbErr) { console.error('callbacks.onFailure threw', cbErr); }
+              } else {
+                try { callbacks.onSuccess(data); } catch (cbErr) { console.error('callbacks.onSuccess threw', cbErr); }
               }
-            });
+            };
+
+            // Introspect SDK function and attempt calls with detailed logging
+            try {
+              console.log('getAttributeVerificationCode type/arity', typeof cognitoUserGlobal.getAttributeVerificationCode, cognitoUserGlobal.getAttributeVerificationCode.length);
+            } catch (introspectErr) { console.warn('Unable to introspect getAttributeVerificationCode', introspectErr); }
+
+            const attempts = [
+              { desc: 'callbacks object', args: [callbacks] },
+              { desc: "('email', bridgeCallback)", args: ['email', bridgeCallback] },
+              { desc: "('email', {}, bridgeCallback)", args: ['email', {}, bridgeCallback] },
+              { desc: "('email', callbacks)", args: ['email', callbacks] }
+            ];
+
+            for (let i = 0; i < attempts.length; i++) {
+              const at = attempts[i];
+              try {
+                console.log('Attempt', i + 1, at.desc, at.args.map(a => (a && a.constructor) ? a.constructor.name : typeof a));
+                const res = cognitoUserGlobal.getAttributeVerificationCode.apply(cognitoUserGlobal, at.args);
+                console.log('Attempt result', res);
+                return;
+              } catch (callErr) {
+                console.warn('Attempt', i + 1, 'failed with', callErr);
+                // if callErr message mentions onFailure or e is null, surface it
+                if (callErr && callErr.message && /onFailure|e is null|e is undefined/.test(callErr.message)) {
+                  console.error('Likely SDK argument mismatch causing TypeError:', callErr);
+                }
+              }
+            }
+
+            msgEl.textContent = 'Unable to request verification code - see console for details.';
           });
-        } catch (e) {
-          console.error('Error triggering getAttributeVerificationCode', e);
-          msgEl.textContent = 'Unexpected error; see console.';
+        } catch (outerErr) {
+          console.error('Unexpected error while requesting verification code', outerErr);
+          msgEl.textContent = 'Unexpected error - see console.';
         }
       });
     })();

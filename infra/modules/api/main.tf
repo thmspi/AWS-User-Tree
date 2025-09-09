@@ -49,7 +49,6 @@ data "aws_iam_policy_document" "cognito_access" {
     actions = [
       "cognito-idp:AdminGetUser",
       "cognito-idp:AdminCreateUser",
-  "cognito-idp:AdminUpdateUserAttributes",
       "cognito-idp:AdminAddUserToGroup",
       "cognito-idp:AdminDeleteUser"
     ]
@@ -479,7 +478,6 @@ resource "aws_lambda_permission" "cognito_register" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }
-
 // Permission for manage_team
 resource "aws_lambda_permission" "manage_team" {
   statement_id  = "AllowManageTeamInvoke"
