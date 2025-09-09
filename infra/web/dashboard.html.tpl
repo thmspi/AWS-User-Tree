@@ -330,17 +330,98 @@
     const poolData = { UserPoolId: '${user_pool_id}', ClientId: '${client_id}' };
     const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
     const cognitoUserGlobal = new AmazonCognitoIdentity.CognitoUser({ Username: currentUser, Pool: userPool });
-    // Verify email button handler
-    document.getElementById('verify-email').addEventListener('click', () => {
-      cognitoUserGlobal.getAttributeVerificationCode(
-        'email',
-        null,
-        {
-          onSuccess: () => document.getElementById('verify-container').style.display = 'inline-block',
-          onFailure: err => document.getElementById('verify-message').textContent = err.message
+    // Defensive wrapper: ensure getAttributeVerificationCode always receives a callbacks object
+    try {
+      const _origGetAttributeVerificationCode = cognitoUserGlobal.getAttributeVerificationCode && cognitoUserGlobal.getAttributeVerificationCode.bind(cognitoUserGlobal);
+      if (_origGetAttributeVerificationCode) {
+        cognitoUserGlobal.getAttributeVerificationCode = function(...args) {
+          try {
+            console.log('Wrapped getAttributeVerificationCode called with', args.map(a => (a && a.constructor) ? a.constructor.name : typeof a));
+          } catch (lErr) { /* ignore */ }
+          // If last arg is a callback object with onSuccess/onFailure, pass through
+          let last = args[args.length - 1];
+          if (last && typeof last.onSuccess === 'function' && typeof last.onFailure === 'function') {
+            return _origGetAttributeVerificationCode(...args);
+          }
+          // If last is a function, wrap it into callbacks
+          if (typeof last === 'function') {
+            const fn = last;
+            const cb = {
+              onSuccess: (data) => { try { fn(null, data); } catch (e) { console.error('wrapped onSuccess threw', e); } },
+              onFailure: (err) => { try { fn(err); } catch (e) { console.error('wrapped onFailure threw', e); } }
+            };
+            args[args.length - 1] = cb;
+            return _origGetAttributeVerificationCode(...args);
+          }
+          // Otherwise ensure there's a callbacks object at the end
+          const safeCb = { onSuccess: () => console.log('verification success (no handler)'), onFailure: (err) => console.error('verification failed (no handler)', err) };
+          args.push(safeCb);
+          return _origGetAttributeVerificationCode(...args);
+        };
+      }
+    } catch (wrapErr) { console.warn('Failed to wrap getAttributeVerificationCode', wrapErr); }
+    // If OAuth tokens are present in the URL (implicit flow), build a CognitoUserSession and attach it
+    try {
+      const urlHash = new URLSearchParams(window.location.hash.substr(1));
+      const accessTokenRaw = urlHash.get('access_token');
+      const idTokenRaw = urlHash.get('id_token');
+      if (accessTokenRaw && idTokenRaw) {
+        console.log('Found OAuth tokens in URL hash, constructing CognitoUserSession');
+        const idTokenObj = new AmazonCognitoIdentity.CognitoIdToken({ IdToken: idTokenRaw });
+        const accessTokenObj = new AmazonCognitoIdentity.CognitoAccessToken({ AccessToken: accessTokenRaw });
+        // refresh token typically not returned in implicit flow; provide empty string
+        const refreshTokenObj = new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: '' });
+        const sessionData = new AmazonCognitoIdentity.CognitoUserSession({
+          IdToken: idTokenObj,
+          AccessToken: accessTokenObj,
+          RefreshToken: refreshTokenObj
+        });
+        try {
+          cognitoUserGlobal.setSignInUserSession(sessionData);
+          console.log('Sign-in session attached to CognitoUser');
+        } catch (setErr) {
+          console.warn('Failed to setSignInUserSession on CognitoUser', setErr);
         }
-      );
-    });
+      } else {
+        console.log('No access_token+id_token pair found in URL hash; getSession may fail until user signs in through the app flow.');
+      }
+    } catch (e) {
+      console.warn('Error while creating Cognito session from URL hash', e);
+    }
+
+    // Verify email button handler (server-side) - call POST /verify_mail
+    (function() {
+      const verifyBtn = document.getElementById('verify-email');
+      verifyBtn.addEventListener('click', async () => {
+        console.log('verify-email clicked (server-side) ', { currentUser });
+        const msgEl = document.getElementById('verify-message');
+        msgEl.textContent = '';
+        if (!currentUser) {
+          msgEl.textContent = 'No user info available. Please sign in.';
+          return;
+        }
+        try {
+          const res = await fetch(apiEndpoint + '/verify_mail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: currentUser })
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            console.error('verify_mail failed', res.status, body);
+            msgEl.textContent = body.error || ('Verification request failed: ' + res.status);
+            return;
+          }
+          // show input for confirmation code if desired (server sent code via email)
+          document.getElementById('verify-container').style.display = 'inline-block';
+          msgEl.style.color = 'lightgreen';
+          msgEl.textContent = 'Verification email sent. Check your inbox.';
+        } catch (err) {
+          console.error('Error calling verify_mail', err);
+          msgEl.textContent = 'Error sending verification request. See console.';
+        }
+      });
+    })();
     // Confirm code handler
     document.getElementById('confirm-verify').addEventListener('click', () => {
       const code = document.getElementById('verify-code').value;

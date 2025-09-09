@@ -1,0 +1,11 @@
+{
+  "name": "verify_mail_lambda",
+  "version": "1.0.0",
+  "description": "Lambda to mark Cognito user email as verified",
+  "main": "index.js",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.1500.0"
+  }
+}
