@@ -77,7 +77,7 @@
       <h1>Authentification is required</h1>
       <input type="text" id="username" placeholder="Username" style="padding:0.5em;width:250px;" />
       <input type="password" id="password" placeholder="Password" style="padding:0.5em;width:250px;" />
-      <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
+      <button id="signin-btn" style="padding:0.5em 1em;color:#fff;border:1px solid var(--color-main);border-radius:4px;cursor:pointer;">Sign In</button>
       <div id="signin-message" style="color:red;"></div>
     </div>
     <!-- New password challenge workflow (set permanent password) -->
