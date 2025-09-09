@@ -47,14 +47,49 @@
       outline: 2px solid var(--color-main);
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/amazon-cognito-identity-js/5.2.4/amazon-cognito-identity.min.js"></script>
 </head>
 <body>
   <div class="logo-container" style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
   <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
     <span style="font-size:1.5rem; color:var(--color-text);">My Org Tree</span>
   </div>
-  <h1>Restricted Access</h1>
-  <p>Please login to continue.</p>
-  <button onclick="window.location.href='${login_url}'">Login with Cognito</button>
+  <main>
+    <div class="login-container" style="display:flex;flex-direction:column;align-items:center;gap:1em;">
+      <h1>Sign In</h1>
+      <input type="text" id="username" placeholder="Username" style="padding:0.5em;width:250px;" />
+      <input type="password" id="password" placeholder="Password" style="padding:0.5em;width:250px;" />
+      <button id="signin-btn" style="padding:0.5em 1em;background:#ef26c6;color:#fff;border:none;border-radius:4px;cursor:pointer;">Sign In</button>
+      <div id="signin-message" style="color:red;"></div>
+    </div>
+  </main>
+  <script>
+    // Cognito configuration
+    const poolData = {
+      UserPoolId: '${user_pool_id}',
+      ClientId: '${client_id}'
+    };
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+
+    document.getElementById('signin-btn').addEventListener('click', () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const authData = { Username: username, Password: password };
+      const authDetails = new AmazonCognitoIdentity.AuthenticationDetails(authData);
+      const userData = { Username: username, Pool: userPool };
+      const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+      cognitoUser.authenticateUser(authDetails, {
+        onSuccess: result => {
+          // retrieve tokens
+          const idToken = result.getIdToken().getJwtToken();
+          // redirect to dashboard with token
+          window.location.href = '/dashboard.html#id_token=' + idToken;
+        },
+        onFailure: err => {
+          document.getElementById('signin-message').textContent = err.message || JSON.stringify(err);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
