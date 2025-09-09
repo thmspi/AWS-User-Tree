@@ -1,6 +1,6 @@
 # My Organisation Tree
 
-This project was built to demonstrate my understanding of Terraform and AWS. It provisions a simple web application equiped with an authentification page. The web application allow you administrate (create, delete, switch...) your organisation users using groups, managers, and employees.
+This project demonstrates the use of Terraform with AWS by provisioning a simple web application equipped with an authentication page. The application allows you to manage your organization’s users (create, delete, switch, etc.) through a hierarchy of groups, managers, and employees.
 
 
 ## Prerequisites
@@ -66,88 +66,130 @@ To run the stack, define the following variables. Use **environment variables** 
 
 ### AWS Policy for Terraform
 
-Terraform needs permissions to create and manage the AWS resources defined in this project. Use the **minimum policy** provided at `infra/policy/My-Org-Tree.json`.
+Terraform requires permissions to create and manage the AWS resources defined in this project. Use the **minimum policy** provided at `infra/policy/My-Org-Tree.json`.
 
 **Attach the policy**
 
 1. In the AWS Console: **IAM → Policies → Create policy**.  
-2. Paste the JSON from `infra/policy/My-Org-Tree.json` and create the policy.
-3. Attach the policy to the **IAM user or role** whose credentials (Access Key ID / Secret) Terraform will use.
-
-## Description
-
-### AWS Infrastructure
-
-This project provisions a **serverless** architecture that powers the application end-to-end:
-
-- **Amazon S3** — hosts the single-page application (SPA).
-- **AWS CloudFront** — serves as the public entry point for the SPA.
-- **Amazon Cognito** - handles the user credentials and authentification
-- **Amazon API Gateway** — public entry point for API requests from the SPA.
-- **AWS Dynamo DB** - Handle the data logic and storage for operations
-- **AWS Lambda** — stateless functions handling the business logic.
-- **Amazon CloudWatch Logs** — centralized logging for debugging and traceability.
-
-<img src="README-imgs/Architecture.png" alt="Architecture diagram" style="width:500px;">
-
-**How it works**
-
-1. The SPA is stored in an S3 bucket, which is secured with an Origin Access Control (OAC) so that only CloudFront can serve its content.  
-2. CloudFront acts as the public entry point, delivering the SPA to users.  
-3. User interactions trigger API requests routed through API Gateway.  
-4. API Gateway invokes the appropriate Lambda functions.  
-5. Lambdas handle the request and return the response to the SPA.  
-6. API activity is logged in **CloudWatch Logs**.  
-
+2. Paste the JSON from `infra/policy/My-Org-Tree.json` and create the policy.  
+3. Attach the policy to the **IAM user or role** whose credentials (Access Key ID / Secret) Terraform will use.  
 
 ---
 
-### The Web Application
+## AWS Infrastructure
 
-The frontend is a single-page website hosted on S3:
+This project provisions a **serverless** architecture that powers the application end-to-end:
 
-<img src="README-imgs/website.png" alt="Website screenshot" style="width:500px;">
+- **Amazon S3** — hosts the single-page application (SPA).  
+- **AWS CloudFront** — serves as the public entry point for the SPA.  
+- **Amazon Cognito** — manages user credentials and authentication.  
+- **Amazon API Gateway** — serves as the public entry point for API requests from the SPA.  
+- **AWS DynamoDB** — handles data logic and storage for operations.  
+- **AWS Lambda** — stateless functions implementing business logic.  
+- **Amazon CloudWatch Logs** — centralized logging for debugging and traceability.  
 
-**Features**
+<img src="README-imgs/My-Org-Tree-architecture.png" alt="Architecture diagram" style="width:500px;">
 
-- Search by movie title.
-- Optional filters:
-  - **Country** (first dropdown).
-  - **Streaming provider** (second dropdown).
+**How it works**
+
+1. The SPA is stored in an S3 bucket secured with an Origin Access Control (OAC), so only CloudFront can serve its content.  
+2. CloudFront acts as the public entry point, delivering the SPA to users.  
+3. Cognito authenticates users before they can access the application.  
+4. (Managers only) User interactions trigger API requests routed through API Gateway.  
+5. API Gateway invokes the appropriate Lambda functions.  
+6. Lambda functions process requests and return responses to the SPA.  
+7. All API activity is logged in **CloudWatch Logs**.  
+
+---
+
+## The Web Application
+
+When accessing the application, you will first be prompted to sign in:
+
+<img src="README-imgs/authentification.png" alt="sign-in" style="width:500px;">
+
+If a user has been created via the web application, they will receive a temporary password. On their first login, they must replace it with a permanent password:
+
+<img src="README-imgs/new-pwd.png" alt="new-pwd" style="width:500px;">
+
+After authentication, users gain access to the main application:
+
+<img src="README-imgs/tree.png" alt="tree" style="width:500px;">
+
+If logged in as a manager, you will have access to the options menu on the right-hand side:
+
+<img src="README-imgs/sliding-menu.png" alt="menu" style="width:500px;">
+
+### Creating Users
+
+Managers can create new users by providing their name, surname, email (username), job title, team, manager, and whether they should also be assigned as a manager:
+
+<img src="README-imgs/create-user.png" alt="create" style="width:300px;">
+
+After creation, the new user’s temporary credentials will be displayed in a popup before being added to the hierarchy.  
+
+> You cannot create users under the management of other managers who are above or at the same level as you.  
+
+### Deleting Users
+
+Managers can delete users by selecting them:
+
+<img src="README-imgs/delete-user.png" alt="delete" style="width:300px;">
+
+> You cannot delete yourself or managers who are above or at the same level as you. Once deleted, all users previously managed by the removed user will be reassigned to the parent manager.  
+
+### Managing Teams
+
+Managers can create or delete teams and assign a specific color, which applies only to that team’s employees:
+
+<img src="README-imgs/manage-teams.png" alt="manage" style="width:300px;">
+
+### Switching Positions
+
+Managers can switch positions if they change teams or need to manage a different group:
+
+<img src="README-imgs/switch-manager.png" alt="switch" style="width:300px;">
+
+> You cannot switch yourself or managers who are above or at the same level as you.  
 
 ---
 
 ### Accessing the Application
 
-After applying the Terraform configuration, use the URL printed in the Terraform **outputs** to open the website:
+After applying the Terraform configuration, use the URL printed in the Terraform **outputs** to open the application:
 
 <img src="README-imgs/outputs.png" alt="Terraform outputs showing the website URL" style="width:500px;">
 
+---
 
-## Main Functions
+## Lambdas and DynamoDB Tables
 
-### Code layout
-- `search.mjs` and `watch.mjs` — Lambda handlers.
-- `core.js` — shared helpers used by `watch.mjs` (the `/watch` Lambda). The `/search` Lambda does **not** depend on it.
+The project deploys multiple Lambda functions and DynamoDB tables. Below is a summary of their responsibilities:
 
-### Workflow
+### Lambdas
 
-#### Search for matches (`/search` Lambda)
-Queries TMDB for titles matching the user’s input. Runs standalone and does not require `core.js`.
+- **User Tree** — queries DynamoDB and reconstructs the hierarchy tree in JSON format.  
+- **Is Manager?** — checks if the current user is a manager in DynamoDB to determine if the options menu should be shown.  
+- **Check Availability** — verifies that the selected username/email is not already taken in Cognito.  
+- **Cognito Register** — registers the user in Cognito.  
+- **Dynamo Register** — stores additional information in DynamoDB to maintain the hierarchy tree.  
+- **Fetch Manager** — queries DynamoDB for available managers for dropdown selection.  
+- **Fetch Team** — queries DynamoDB for available teams for dropdown selection.  
+- **Manage Team** — handles team creation/removal and updates DynamoDB accordingly.  
+- **Switch Manager** — updates manager assignments while maintaining tree integrity.  
+- **Delete User** — removes a user from DynamoDB and Cognito and reassigns their children to the parent manager.  
 
-#### Resolve a title
-`resolveTitle()` asks TMDB for detailed metadata (IDs, release year, runtime, etc.) for the selected movie.
+### DynamoDB Tables
 
-#### Filter by provider
-Because TMDB cannot filter providers in the query itself, `pickStreaming()` filters the provider list **after** retrieval to keep only the user-selected services (and country, if supplied).
-
-#### Orchestrate “where to stream”
-`whereToStream()` combines `resolveTitle()` and `pickStreaming()` into a single flow. It is called by the `/watch` Lambda (`watch.mjs`) to keep the handler small while centralizing API calls and filtering logic.
+- **Users** — stores all user-related metadata required to build the hierarchy tree.  
+- **Teams** — stores all team information and configurations.  
 
 ---
 
 ## Possible Improvements
 
-- **Tighten IAM**: replace wildcard actions/resources with explicit ARNs; restrict each Lambda’s execution role to only required permissions.
-- **Secret management**: store `tmdb_key` in AWS Secrets Manager or SSM Parameter Store (with KMS)
-- **Observability**: generate detailed logs of API actions to improve traceability and make debugging more convenient.
+- **Tighten Policy** — while already restricted, the IAM policy could be refined further.  
+- **Improved UI/UX** — the current UI is functional but basic; a future version could offer a more interactive and modern design.  
+- **Additional Options** — add the ability to edit users and directly insert new users into the hierarchy.  
+- **Send Credentials by Email** — credentials could be distributed via email (using AWS SNS), but this requires a domain and mail server.  
+- **Complete Cognito Integration** — add email verification, password reset, and other security features not yet implemented.  
