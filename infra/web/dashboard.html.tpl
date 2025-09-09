@@ -177,7 +177,7 @@
 <body>
   <header>
     <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
-      <img src="/static/tree.svg" alt="My Org Tree" style="height:32px;" />
+      <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
       <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
     </div>
     <div id="controls">
@@ -335,10 +335,20 @@
         teamsList.forEach(t => { teamColorMap[t.name] = t.color; });
         // do not override currentUser; parseJwt used
         const root = d3.hierarchy(data);
-        // if the current user is a manager, display creation menu
-        if (data.is_manager) {
-          document.getElementById('slide-menu').style.display = 'block';
-        }
+        // show slide-menu only for authenticated managers
+        try {
+          const menuEl = document.getElementById('slide-menu');
+          const toggleEl = document.getElementById('menu-toggle');
+          const isManager = !!data.is_manager && !!currentUser;
+          if (isManager) {
+            if (menuEl) menuEl.style.display = 'block';
+            if (toggleEl) toggleEl.style.display = 'block';
+          } else {
+            // explicitly hide and reset state for non-managers
+            if (menuEl) { menuEl.style.display = 'none'; menuEl.classList.remove('open'); }
+            if (toggleEl) { toggleEl.style.display = 'none'; toggleEl.classList.remove('open'); }
+          }
+        } catch (e) { console.warn('Error controlling slide-menu visibility', e); }
         // vertical orientation: width controls x-axis, height controls y-axis
         // use fixed node size: [horizontalSpacing, verticalSpacing]
         const treeLayout = d3.tree().nodeSize([150, 100]);
