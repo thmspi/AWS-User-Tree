@@ -63,7 +63,7 @@ resource "aws_dynamodb_table_item" "manon_chemla_com" {
     job         = { L = [{ S = "Tourisme" }] }
     permissions = { L = [] }
     is_manager  = { BOOL = true }
-    manager     = { S = "thomas@thomas.com" }
+    manager     = { S = "amiscremail@gmail.com" }
   })
   depends_on = [aws_dynamodb_table.user_tree]
 }

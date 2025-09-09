@@ -16,8 +16,11 @@ const ddb = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddb);
 
 exports.handler = async (event) => {
-  // handle CORS preflight
-  if (event.requestContext?.http?.method === 'OPTIONS') {
+  // log incoming event and handle CORS preflight
+  console.log('DeleteUser event:', JSON.stringify(event));
+  const method = event.requestContext?.http?.method || event.httpMethod;
+  console.log('DeleteUser method:', method);
+  if (method === 'OPTIONS') {
     return {
       statusCode: 204,
       headers: {
@@ -30,18 +33,25 @@ exports.handler = async (event) => {
   const poolId = process.env.USER_POOL_ID;
   const table = process.env.TABLE_NAME;
   try {
-    const parts = event.rawPath.split('/');
-    const username = decodeURIComponent(parts[parts.length - 1]);
-    if (!username) return {
-      statusCode: 400,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': '*',
-        'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
-      },
-      body: JSON.stringify({ message: 'Missing username' })
-    };
+    // extract username from pathParameters or rawPath
+    let username = event.pathParameters?.username;
+    if (!username && event.rawPath) {
+      const parts = event.rawPath.split('/');
+      username = decodeURIComponent(parts[parts.length - 1]);
+    }
+    console.log('DeleteUser target username:', username);
+    if (!username) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Methods': 'DELETE,OPTIONS'
+        },
+        body: JSON.stringify({ message: 'Missing username parameter' })
+      };
+    }
     // fetch user's manager and children
     const scan = await docClient.send(new ScanCommand({ TableName: table }));
     const items = scan.Items;
@@ -82,8 +92,12 @@ exports.handler = async (event) => {
       ExpressionAttributeValues: { ':children': updatedChildren }
     }));
     const children = user.children || [];
-    // delete from Cognito
-    await cognito.send(new AdminDeleteUserCommand({ UserPoolId: poolId, Username: username }));
+    // delete from Cognito (ignore errors to avoid aborting deletion flow)
+    try {
+      await cognito.send(new AdminDeleteUserCommand({ UserPoolId: poolId, Username: username }));
+    } catch (err) {
+      console.warn('Cognito delete user warning:', err.message || err);
+    }
     // reassign children to parent
     for (const child of children) {
       await docClient.send(new UpdateCommand({
