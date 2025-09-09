@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Restricted Access</title>
   <style>
+    :root {
+      --color-text: #ccc6c6;
+      --color-main: rgb(255 180 241);
+      --color-secondary: #a90888;
+      --color-black-main: rgb(10 10 10);
+      --color-black-secondary: rgb(29 29 29);
+    }
     body {
       display: flex;
       flex-direction: column;
@@ -14,34 +21,130 @@
       height: 100vh;
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      background-color: var(--color-black-main);
+      color: var(--color-text);
     }
     h1 {
       font-size: 2rem;
       margin-bottom: 0.5em;
+      color: var(--color-text);
     }
     p {
       font-size: 1.2rem;
       margin-bottom: 1.5em;
+      color: var(--color-text);
     }
     button {
       padding: 0.75em 1.5em;
       font-size: 1rem;
       border: none;
-      background-color: #0073bb;
-      color: #fff;
+      background-color: var(--color-secondary);
+      color: var(--color-text);
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #005fa3;
+    button:hover, button:focus {
+      outline: none;
+    }
+    /* Sign-in button specific styles */
+    #signin-btn {
+      background-color: var(--color-black-secondary);
+      color: var(--color-text);
+      border: none;
+      transition : all 150ms ease-in;
+    }
+    #signin-btn:hover {
+      background-color: var(--color-main);
+    }
+    #signin-btn:focus {
+      outline: none;
     }
   </style>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5.2.7/dist/amazon-cognito-identity.min.js"></script>
+  <script>
+    // Set AWS region for Cognito operations
+    AWS.config.region = '${aws_region}';
+  </script>
 </head>
 <body>
-  <h1>Restricted Access</h1>
-  <p>Please login to continue.</p>
-  <button onclick="window.location.href='${login_url}'">Login with Cognito</button>
-</body>
-</html>
+  <div class="logo-container" style="display:flex; align-items:center; gap:0.5em; margin-bottom:1em;">
+  <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
+    <span style="font-size:1.5rem; color:var(--color-text);">My Org Tree</span>
+  </div>
+  <main>
+    <div class="login-container" style="display:flex;flex-direction:column;align-items:center;gap:1em;">
+      <h1>Authentification is required</h1>
+      <input type="text" id="username" placeholder="Username" style="padding:0.5em;width:250px;" />
+      <input type="password" id="password" placeholder="Password" style="padding:0.5em;width:250px;" />
+      <button id="signin-btn" style="padding:0.5em 1em;color:#fff;border:1px solid var(--color-main);border-radius:4px;cursor:pointer;">Sign In</button>
+      <div id="signin-message" style="color:red;"></div>
+    </div>
+    <!-- New password challenge workflow (set permanent password) -->
+    <div id="new-password-container" style="display:none;flex-direction:column;align-items:center;gap:0.5em;">
+      <h2>Set New Password</h2>
+      <input type="password" id="new-password" placeholder="New Password" style="padding:0.5em;width:250px;" />
+      <input type="password" id="new-password-confirm" placeholder="Confirm Password" style="padding:0.5em;width:250px;" />
+      <button id="new-password-btn" style="padding:0.5em 1em;">Set Password</button>
+      <div id="newpass-message" style="color:red;"></div>
+    </div>
+   </main>
+   <script>
+    // Cognito configuration
+    const poolData = {
+      UserPoolId: '${user_pool_id}',
+      ClientId: '${client_id}'
+    };
+    const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
+    let cognitoUserGlobal;
+
+    document.getElementById('signin-btn').addEventListener('click', () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const authDetails = new AmazonCognitoIdentity.AuthenticationDetails({ Username: username, Password: password });
+      const userData = { Username: username, Pool: userPool };
+      cognitoUserGlobal = new AmazonCognitoIdentity.CognitoUser(userData);
+      cognitoUserGlobal.authenticateUser(authDetails, {
+        onSuccess: result => {
+          const idToken = result.getIdToken().getJwtToken();
+          window.location.href = '/dashboard.html#id_token=' + idToken;
+        },
+        onFailure: err => {
+          document.getElementById('signin-message').textContent = err.message;
+        },
+        newPasswordRequired: (userAttributes, requiredAttributes) => {
+          document.querySelector('.login-container').style.display = 'none';
+          document.getElementById('new-password-container').style.display = 'flex';
+        }
+      });
+    });
+    // New password challenge
+    document.getElementById('new-password-btn').addEventListener('click', () => {
+      const pass = document.getElementById('new-password').value;
+      const confirm = document.getElementById('new-password-confirm').value;
+      const msgEl = document.getElementById('newpass-message');
+      msgEl.textContent = '';
+      if (!pass || pass.length < 8) {
+        msgEl.textContent = 'Password must be at least 8 characters';
+        return;
+      }
+      if (pass !== confirm) {
+        msgEl.textContent = 'Passwords do not match';
+        return;
+      }
+      cognitoUserGlobal.completeNewPasswordChallenge(pass, {}, {
+        onSuccess: result => {
+          try {
+            const idToken = result.getIdToken().getJwtToken();
+            window.location.href = '/dashboard.html#id_token=' + idToken;
+          } catch (e) {
+            // fallback: reload if token not available
+            window.location.reload();
+          }
+        },
+        onFailure: err => document.getElementById('newpass-message').textContent = err.message
+      });
+    });
+   </script>
+ </body>
+ </html>

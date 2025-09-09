@@ -3,6 +3,9 @@
 resource "aws_cognito_user_pool" "this" {
   name                     = "${terraform.workspace}-user-pool"
   auto_verified_attributes = ["email"]
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
   admin_create_user_config {
     allow_admin_create_user_only = true
   }

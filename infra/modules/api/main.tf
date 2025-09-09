@@ -87,6 +87,11 @@ resource "aws_lambda_function" "user_tree" {
   }
   depends_on = [aws_iam_role_policy.lambda_dynamo, archive_file.user_tree_zip]
 }
+// CloudWatch log group for user_tree Lambda
+resource "aws_cloudwatch_log_group" "user_tree_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.user_tree.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy fetch_team Lambda
 resource "archive_file" "fetch_team_zip" {
   type        = "zip"
@@ -106,6 +111,11 @@ resource "aws_lambda_function" "fetch_team" {
     }
   }
   depends_on = [archive_file.fetch_team_zip]
+}
+// CloudWatch log group for fetch_team Lambda
+resource "aws_cloudwatch_log_group" "fetch_team_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.fetch_team.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy fetch_manager Lambda
 resource "archive_file" "fetch_manager_zip" {
@@ -127,6 +137,11 @@ resource "aws_lambda_function" "fetch_manager" {
   }
   depends_on = [archive_file.fetch_manager_zip]
 }
+// CloudWatch log group for fetch_manager Lambda
+resource "aws_cloudwatch_log_group" "fetch_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.fetch_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy checkavailability Lambda
 resource "archive_file" "checkavailability_zip" {
   type        = "zip"
@@ -145,6 +160,11 @@ resource "aws_lambda_function" "checkavailability" {
   }
   depends_on = [archive_file.checkavailability_zip, aws_iam_role_policy.lambda_cognito]
 }
+// CloudWatch log group for checkavailability Lambda
+resource "aws_cloudwatch_log_group" "checkavailability_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.checkavailability.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy cognito_register Lambda
 resource "archive_file" "cognito_register_zip" {
   type        = "zip"
@@ -162,6 +182,11 @@ resource "aws_lambda_function" "cognito_register" {
     variables = { USER_POOL_ID = var.user_pool_id }
   }
   depends_on = [archive_file.cognito_register_zip, aws_iam_role_policy.lambda_cognito]
+}
+// CloudWatch log group for cognito_register Lambda
+resource "aws_cloudwatch_log_group" "cognito_register_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.cognito_register.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy dynamo_register Lambda
 resource "archive_file" "dynamo_register_zip" {
@@ -184,6 +209,11 @@ resource "aws_lambda_function" "dynamo_register" {
   }
   depends_on = [archive_file.dynamo_register_zip]
 }
+// CloudWatch log group for dynamo_register Lambda
+resource "aws_cloudwatch_log_group" "dynamo_register_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.dynamo_register.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy manage_team Lambda
 resource "archive_file" "manage_team_zip" {
   type        = "zip"
@@ -201,6 +231,11 @@ resource "aws_lambda_function" "manage_team" {
     variables = { TEAMS_TABLE = var.teams_table_name }
   }
   depends_on = [archive_file.manage_team_zip]
+}
+// CloudWatch log group for manage_team Lambda
+resource "aws_cloudwatch_log_group" "manage_team_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.manage_team.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Package and deploy delete_user Lambda
 resource "archive_file" "delete_user_zip" {
@@ -223,6 +258,11 @@ resource "aws_lambda_function" "delete_user" {
   }
   depends_on = [archive_file.delete_user_zip]
 }
+// CloudWatch log group for delete_user Lambda
+resource "aws_cloudwatch_log_group" "delete_user_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.delete_user.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Package and deploy switch_manager Lambda
 resource "archive_file" "switch_manager_zip" {
   type        = "zip"
@@ -242,6 +282,11 @@ resource "aws_lambda_function" "switch_manager" {
     }
   }
   depends_on = [archive_file.switch_manager_zip]
+}
+// CloudWatch log group for switch_manager Lambda
+resource "aws_cloudwatch_log_group" "switch_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.switch_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
 }
 // Attach basic execution policy so Lambda can emit logs to CloudWatch
 resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
@@ -354,6 +399,31 @@ resource "aws_apigatewayv2_integration" "manage_team" {
   integration_uri        = aws_lambda_function.manage_team.invoke_arn
   payload_format_version = "2.0"
 }
+// Package and deploy is_manager Lambda
+resource "archive_file" "is_manager_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambdas/is_manager"
+  output_path = "${path.module}/is_manager.zip"
+}
+resource "aws_lambda_function" "is_manager" {
+  filename         = archive_file.is_manager_zip.output_path
+  source_code_hash = archive_file.is_manager_zip.output_base64sha256
+  function_name    = "${terraform.workspace}-is-manager"
+  handler          = "index.handler"
+  runtime          = "nodejs22.x"
+  role             = aws_iam_role.lambda_exec.arn
+  environment {
+    variables = {
+      USER_TABLE = var.table_name
+    }
+  }
+  depends_on = [archive_file.is_manager_zip]
+}
+// CloudWatch log group for is_manager Lambda
+resource "aws_cloudwatch_log_group" "is_manager_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.is_manager.function_name}"
+  retention_in_days = var.log_retention_in_days
+}
 // Route for creating a team
 resource "aws_apigatewayv2_route" "post_teams" {
   api_id    = aws_apigatewayv2_api.http.id
@@ -378,6 +448,19 @@ resource "aws_apigatewayv2_route" "delete_user" {
   api_id    = aws_apigatewayv2_api.http.id
   route_key = "DELETE /users/{username}"
   target    = "integrations/${aws_apigatewayv2_integration.delete_user.id}"
+}
+// Integration for is_manager
+resource "aws_apigatewayv2_integration" "is_manager" {
+  api_id                 = aws_apigatewayv2_api.http.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.is_manager.invoke_arn
+  payload_format_version = "2.0"
+}
+// Route for GET /is_manager and optional path /is_manager/{username}
+resource "aws_apigatewayv2_route" "get_is_manager" {
+  api_id    = aws_apigatewayv2_api.http.id
+  route_key = "GET /is_manager"
+  target    = "integrations/${aws_apigatewayv2_integration.is_manager.id}"
 }
 // Route for switch_manager
 resource "aws_apigatewayv2_route" "post_switch_manager" {
@@ -462,6 +545,14 @@ resource "aws_lambda_permission" "switch_manager" {
   statement_id  = "AllowSwitchManagerInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.switch_manager.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
+}
+// Permission for is_manager
+resource "aws_lambda_permission" "is_manager" {
+  statement_id  = "AllowIsManagerInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.is_manager.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
 }

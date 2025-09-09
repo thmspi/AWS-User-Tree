@@ -6,62 +6,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - AWS User Tree SPA</title>
   <style>
-    body { background-color: black;margin:0; font-family: Arial, sans-serif; display:flex; flex-direction:column; height:100vh; }
-  header { padding:1em; background:#0073bb; color:#fff; display:flex; align-items:center; }
+  /* Tree connector lines in pink */
+  svg .link { stroke: rgb(255,180,241); }
+    :root {
+      --color-text: #ccc6c6;
+      --color-main: rgb(255 180 241);
+      --color-manager: #db42bcff;
+      --color-employee: #850a6dff;
+      --color-secondary: var(--color-employee);
+      --color-black-main: rgb(10 10 10);
+      --color-black-secondary: rgb(29 29 29);
+    }
+    body {
+      background-color: var(--color-black-main);
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      color: var(--color-text);
+    }
+  header {
+    padding: 1em;
+    background: var(--color-black-secondary);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+  }
   #controls { margin-left:auto; display:flex; align-items:center; gap:0.5em; }
     #controls button { margin-left:0.5em; padding:0.5em; font-size:1em; }
     #tree-container {
-      flex:1;
-      overflow:auto;
-      padding:1em;
-      margin:1em;
-      background: #fff;
+      flex: 1;
+      overflow: hidden; /* hide scrollbars, pan/zoom handles content */
+      padding: 1em;
+      margin: 1em;
+      background: var(--color-main-black);
+      border: 2px solid var(--color-main);
       border-radius: 10px;
-      transform-origin:0 0;
+      transform-origin: 0 0;
       max-width: calc(100% - 2em);
       max-height: calc(100% - 2em - 60px); /* account for header and margin */
     }
     /* Slide-in menu for managers */
     #slide-menu {
       position: fixed;
-      top: 60px; /* slide down below the header bar */
+      top: 60px; /* below header */
       right: 0;
-      width: 0;  /* fully closed by default */
-      height: calc(100vh - 60px); /* full height minus header */
+      width: 0;  /* closed */
+      height: calc(100vh - 60px);
       overflow: visible;
-      pointer-events: auto;
-      z-index: 2147483647; /* topmost */
-      background: #f0f0f0;
-      border-left: 1px solid #ccc;
-      /* remove translateY for full-height panel */
+      background: var(--color-black-secondary);
+      border-radius: 8px 0 0 8px;
+      transition: width 0.3s ease;
+      z-index: 2147483647;
     }
     #slide-menu.open {
       width: 200px;
-      transition: width 0.3s ease;
     }
+    /* hide options until open */
+    #menu-options {
+      display: none;
+      flex-direction: column;
+      padding: 0.5em;
+    }
+    /* reveal options when open */
+    #slide-menu.open #menu-options {
+      display: flex;
+    }
+    /* Slide toggle button inside menu */
     #menu-toggle {
-      /* Make toggle fixed to viewport edge */
       position: fixed;
-      top: calc(60px + 50vh - 20px); /* below header, centered */
+      top: calc(60px + 50vh - 18px);
       right: 0;
-      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      background: var(--color-black-secondary);
+      color: var(--color-text);
+      border-radius: 4px 0 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: right 0.3s ease, transform 0.3s ease;
       z-index: 2147483648;
-      pointer-events: auto;
-      width: 20px;
-      height: 40px;
-      background: #eee;
-      color: #333;
-      border: 1px solid #ccc;
-      text-align: center;
-      line-height: 40px;
-      opacity: 1;  /* ensure the toggle is always visible */
-      transition: right 0.3s ease, opacity 0.3s ease;
     }
+    /* rotate toggle when open */
     #slide-menu.open #menu-toggle {
-      /* move toggle right by menu width when open */
       right: 200px;
-      opacity: 1;
-      transform: translateY(-50%) rotate(180deg);
+      transform: rotate(180deg);
     }
     #menu-options {
       display: flex;
@@ -74,29 +106,88 @@
       font-size: 14px;
       cursor: pointer;
     }
-    /* outline only the main card on hover */
-    .node > rect:hover {
-      stroke: #f39c12;
+    /* outline card on hover (anywhere over the node) with main color */
+    .node:hover > rect {
+      stroke: var(--color-main);
       stroke-width: 2px;
     }
     /* popup delete button */
     .popup-delete {
       cursor: pointer;
     }
+    /* D3 detail popup styling */
+    g.popup rect {
+      fill: var(--color-black-main);
+      stroke: var(--color-main);
+      stroke-width: 2px;
+    }
+    /* HTML modal dialogs styling */
+    [id$="-overlay"] > div {
+      background-color: var(--color-black-main) !important;
+      border: 1px solid var(--color-black-secondary);
+      color: var(--color-text);
+    }
+    /* Graph styling */
+    svg .link { stroke: var(--color-text); }
+    .node text { fill: var(--color-text); }
+    /* Form and control styling */
+    input, select, textarea { 
+      background-color: var(--color-black-secondary); 
+      color: var(--color-text); 
+      border: none; 
+      padding: 0.5em;
+      border-radius: 4px;
+    }
+    button {
+      background-color: var(--color-secondary);
+      color: var(--color-text);
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover, input:hover, select:hover, textarea:hover {
+      outline: 2px solid var(--color-main);
+    }
+    /* logout link styling */
+    .logout {
+      margin-left: 0.5em;
+      padding: 0.5em 1em;
+      background-color: #4b0606;
+      color: white;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background-color 0.2s ease;
+    }
+    .logout:hover {
+      background-color: red;
+    }
+    button:focus, input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--color-main);
+    }
   </style>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <!-- AWS SDK and Cognito Identity SDK for email verification -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1500.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@5.2.7/dist/amazon-cognito-identity.min.js"></script>
+  <script>
+    AWS.config.region = '${region}';
+  </script>
 </head>
 <body>
   <header>
-    <div>Dashboard</div>
+    <div class="logo-container" style="display:flex; align-items:center; gap:0.5em;">
+      <img src="/static/sakura_tree.svg" alt="My Org Tree" style="height:32px;" />
+      <span style="font-size:1.25em; color:var(--color-text);">My Org Tree</span>
+    </div>
     <div id="controls">
-      <a href="${logout_url}" style="color:#fff; text-decoration:none;">Logout</a>
+      <a href="${logout_url}" class="logout">Logout</a>
     </div>
   </header>
   <div id="tree-container"></div>
-  <!-- sliding manager menu -->
-  <div id="slide-menu">
-    <button id="menu-toggle">&#x25C0;</button>
+  <!-- sliding manager menu (hidden by default; shown only for managers) -->
+  <div id="slide-menu" style="display:none;">
+  <button id="menu-toggle" style="display:none;">&#x25C0;</button>
     <div id="menu-options">
       <button id="create-user">Create a new user</button>
       <button id="create-group">Manage Teams</button>
@@ -228,7 +319,9 @@
      if (toggleBtn) toggleBtn.addEventListener('click', () => {
        document.getElementById('slide-menu').classList.toggle('open');
      });
-    });
+  // Email verification UI and logic removed per request
+  // Email verification logic removed
+  });
     async function loadTree() {
       try {
         console.log("Fetching tree from", apiEndpoint + "/tree");
@@ -242,10 +335,35 @@
         teamsList.forEach(t => { teamColorMap[t.name] = t.color; });
         // do not override currentUser; parseJwt used
         const root = d3.hierarchy(data);
-        // if the current user is a manager, display creation menu
-        if (data.is_manager) {
-          document.getElementById('slide-menu').style.display = 'block';
-        }
+        // show slide-menu only for authenticated managers
+        try {
+          const menuEl = document.getElementById('slide-menu');
+          const toggleEl = document.getElementById('menu-toggle');
+          // call backend to verify manager status from DynamoDB
+          let apiIsManager = false;
+          if (currentUser) {
+            try {
+              const chk = await fetch(apiEndpoint + '/is_manager?user=' + encodeURIComponent(currentUser));
+              if (chk.ok) {
+                const json = await chk.json();
+                apiIsManager = !!json.is_manager;
+              } else {
+                console.warn('is_manager check returned', chk.status);
+              }
+            } catch (e) {
+              console.warn('Error calling is_manager endpoint', e);
+            }
+          }
+          const isManager = !!data.is_manager && !!currentUser && apiIsManager;
+          if (isManager) {
+            if (menuEl) menuEl.style.display = 'block';
+            if (toggleEl) toggleEl.style.display = 'block';
+          } else {
+            // explicitly hide and reset state for non-managers
+            if (menuEl) { menuEl.style.display = 'none'; menuEl.classList.remove('open'); }
+            if (toggleEl) { toggleEl.style.display = 'none'; toggleEl.classList.remove('open'); }
+          }
+        } catch (e) { console.warn('Error controlling slide-menu visibility', e); }
         // vertical orientation: width controls x-axis, height controls y-axis
         // use fixed node size: [horizontalSpacing, verticalSpacing]
         const treeLayout = d3.tree().nodeSize([150, 100]);
@@ -294,13 +412,12 @@
           .attr('y', -cardHeight/2)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
-          .attr('fill', d => {
-            if (d.data.is_manager) return 'green';
+          .style('fill', d => {
+            if (d.data.is_manager) return 'var(--color-manager)';
             if (d.data.team && d.data.team.length) {
-              return teamColorMap[d.data.team[0]] || 'blue';
+              return teamColorMap[d.data.team[0]] || 'var(--color-employee)';
             }
-            if (d.children && d.children.length) return 'red';
-            return 'blue';
+            return 'var(--color-employee)';
           })
           .attr('rx', 5)
           .attr('ry', 5);
@@ -315,8 +432,10 @@
           ])
           .enter().append('tspan')
             .attr('x', 0)
-            .attr('dy', (d,i) => i === 0 ? -(padding/2) : (padding))
+            .attr('dy', (d,i) => i === 0 ? -(padding/2) : (padding * 1.5))
             .style('font-size', (d,i) => i === 0 ? '14px' : '12px')
+            .style('font-style', (d,i) => i === 0 ? 'normal' : 'italic')
+            .style('opacity', (d,i) => i === 0 ? 1 : 0.9)
             .text(d => d);
         // on click, toggle detail popup
         node.on('click', function(event, d) {

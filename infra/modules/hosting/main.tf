@@ -21,11 +21,6 @@ resource "aws_s3_bucket_ownership_controls" "spa" {
 }
 
 
-
-
-
-
-
 resource "aws_cloudfront_origin_access_control" "spa_oac" {
   name                              = "${terraform.workspace}-spa-oac"
   description                       = "Origin Access Control for SPA bucket"
@@ -50,11 +45,7 @@ resource "aws_cloudfront_distribution" "spa" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "spaS3Origin"
     viewer_protocol_policy = "redirect-to-https"
-    # TTL settings: zero in dev workspace, longer in others
-    min_ttl     = 0
-    default_ttl = terraform.workspace == "dev" ? 0 : 86400
-    max_ttl     = terraform.workspace == "dev" ? 0 : 31536000
-    # required when not using cache_policy_id
+
     forwarded_values {
       query_string = false
       cookies {
@@ -100,11 +91,23 @@ resource "aws_s3_object" "dashboard_html" {
   content = templatefile(
     "${path.module}/../../web/dashboard.html.tpl",
     {
-      api_endpoint = var.dashboard_api_endpoint,
-      logout_url   = var.dashboard_logout_url
+      api_endpoint  = var.dashboard_api_endpoint
+      logout_url    = var.dashboard_logout_url
+      region         = var.region
+      user_pool_id  = var.user_pool_id
+      client_id     = var.client_id
     }
   )
   content_type  = "text/html"
+  cache_control = "max-age=31536000"
+}
+
+# Upload logo SVG for SPA
+resource "aws_s3_object" "tree_svg" {
+  bucket        = aws_s3_bucket.spa.bucket
+  key           = "static/sakura_tree.svg"
+  source        = "${path.module}/../../web/assets/sakura_tree.svg"
+  content_type  = "image/svg+xml"
   cache_control = "max-age=31536000"
 }
 

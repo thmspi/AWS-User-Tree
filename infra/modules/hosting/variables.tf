@@ -13,3 +13,18 @@ variable "dashboard_logout_url" {
   description = "Logout URL for SPA dashboard"
   type        = string
 }
+// AWS region for template context
+variable "region" {
+  description = "AWS region, passed into templates"
+  type        = string
+}
+// Cognito User Pool ID for in-template verification
+variable "user_pool_id" {
+  description = "Cognito User Pool ID"
+  type        = string
+}
+// Cognito App Client ID
+variable "client_id" {
+  description = "Cognito App Client ID"
+  type        = string
+}
